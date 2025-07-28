@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 public class StateView : VisualElement
@@ -157,7 +158,26 @@ public class StateView : VisualElement
     {
         evt.menu.AppendAction("Delete State", (a) => DeleteState());
         evt.menu.AppendSeparator();
-        evt.menu.AppendAction("Connect to...", (a) => StartConnection());
+        evt.menu.AppendAction("Connect to...", (a) => ShowConnectionDropdown());
+
+        // Show existing connections for deletion
+        if (stateData.OutgoingConnections.Count > 0)
+        {
+            evt.menu.AppendSeparator();
+            foreach (var connection in stateData.OutgoingConnections)
+            {
+                var graphData = graphView.GetGraphData();
+                if (graphData != null)
+                {
+                    var targetState = graphData.GetStateById(connection.TargetStateId);
+                    if (targetState != null)
+                    {
+                        evt.menu.AppendAction($"Remove connection to {targetState.Name}",
+                            (a) => RemoveConnection(connection));
+                    }
+                }
+            }
+        }
     }
 
     private void DeleteState()
@@ -165,11 +185,155 @@ public class StateView : VisualElement
         graphView.RemoveStateView(stateData.Id);
     }
 
-    private void StartConnection()
+    private void ShowConnectionDropdown()
     {
-        // This would start the connection creation process
-        // For now, just log
-        Debug.Log($"Starting connection from state: {stateData.Name}");
+        var graphData = graphView.GetGraphData();
+        if (graphData == null) return;
+
+        // Create dropdown choices
+        var choices    = new List<string>();
+        var stateIdMap = new Dictionary<string, StateData>();
+
+        // Add states from the same node first
+        if (!string.IsNullOrEmpty(stateData.ParentNodeId))
+        {
+            var parentNode = graphData.GetNodeById(stateData.ParentNodeId);
+            if (parentNode != null)
+            {
+                choices.Add($"--- {parentNode.Name} (Same Node) ---");
+                foreach (var state in parentNode.States)
+                {
+                    if (state.Id != stateData.Id) // Don't include self
+                    {
+                        var displayName = $"  {state.Name}";
+                        choices.Add(displayName);
+                        stateIdMap[displayName] = state;
+                    }
+                }
+            }
+        }
+
+        // Add separator
+        if (choices.Count > 0)
+        {
+            choices.Add("--- Other Nodes ---");
+        }
+
+        // Add states from other nodes, grouped by node
+        foreach (var node in graphData.Nodes)
+        {
+            if (node.Id == stateData.ParentNodeId) continue; // Skip same node
+
+            if (node.States.Count > 0)
+            {
+                choices.Add($"--- {node.Name} ---");
+                foreach (var state in node.States)
+                {
+                    var displayName = $"  {state.Name}";
+                    choices.Add(displayName);
+                    stateIdMap[displayName] = state;
+                }
+            }
+        }
+
+        // Add unassigned states
+        var unassignedStates = graphData.States.FindAll(s => string.IsNullOrEmpty(s.ParentNodeId) && s.Id != stateData.Id);
+        if (unassignedStates.Count > 0)
+        {
+            choices.Add("--- Unassigned States ---");
+            foreach (var state in unassignedStates)
+            {
+                var displayName = $"  {state.Name}";
+                choices.Add(displayName);
+                stateIdMap[displayName] = state;
+            }
+        }
+
+        if (choices.Count == 0)
+        {
+            Debug.Log("No available states to connect to");
+            return;
+        }
+
+        // Create and show dropdown
+        var dropdown = new DropdownField("Connect to:", choices, 0);
+        dropdown.style.position = Position.Absolute;
+        dropdown.style.left = worldBound.x;
+        dropdown.style.top = worldBound.yMax + 5;
+        dropdown.style.width = 250;
+
+        // Add to parent (graph view)
+        graphView.Add(dropdown);
+
+        // Handle selection
+        dropdown.RegisterValueChangedCallback(evt =>
+        {
+            var selectedChoice = evt.newValue;
+            if (stateIdMap.TryGetValue(selectedChoice, out var targetState))
+            {
+                CreateConnection(targetState);
+            }
+            dropdown.RemoveFromHierarchy();
+        });
+
+        // Remove dropdown when clicking elsewhere
+        dropdown.RegisterCallback<BlurEvent>(evt =>
+        {
+            dropdown.RemoveFromHierarchy();
+        });
+
+        dropdown.Focus();
+    }
+
+    private void CreateConnection(StateData targetState)
+    {
+        var graphData = graphView.GetGraphData();
+        if (graphData == null || targetState == null) return;
+
+        // Check if connection already exists
+        foreach (var existingConnection in stateData.OutgoingConnections)
+        {
+            if (existingConnection.TargetStateId == targetState.Id)
+            {
+                Debug.Log($"Connection already exists from {stateData.Name} to {targetState.Name}");
+                return;
+            }
+        }
+
+        // Create new connection
+        var connection = new ConnectionData(
+            stateData.Id,
+            targetState.Id,
+            stateData.ParentNodeId,
+            targetState.ParentNodeId,
+            false // State to state connection
+        );
+
+        // Add connection to source state
+        stateData.AddConnection(connection);
+
+        // Refresh connections in the graph view
+        graphView.RefreshConnections();
+
+        Debug.Log($"Created connection from {stateData.Name} to {targetState.Name}");
+    }
+
+    private void RemoveConnection(ConnectionData connection)
+    {
+        if (connection == null) return;
+
+        // Remove connection from source state
+        stateData.RemoveConnection(connection);
+
+        // Refresh connections in the graph view
+        graphView.RefreshConnections();
+
+        var graphData = graphView.GetGraphData();
+        if (graphData != null)
+        {
+            var targetState = graphData.GetStateById(connection.TargetStateId);
+            Debug.Log($"Removed connection from {stateData.Name} to {targetState?.Name ?? "Unknown"}");
+        }
     }
 
 

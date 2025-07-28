@@ -18,6 +18,11 @@ public class GraphView : VisualElement
     private StateData copiedStateData;
     private NodeData copiedNodeData;
 
+    // Connection creation state
+    private bool isCreatingConnection = false;
+    private StateData connectionSourceState;
+    private VisualElement connectionPreview;
+
     public event Action<StateData> OnStateSelected;
     public event Action<NodeData> OnNodeSelected;
 
