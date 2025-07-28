@@ -12,6 +12,7 @@
     min-width: 150px;
     min-height: 60px;
     padding: 0;
+    z-index: 1; /* Nodes appear behind states */
 }
 
 .node:hover {
@@ -57,6 +58,7 @@
     align-items: center;
     min-height: 25px;
     min-width: 80px;
+    z-index: 10; /* Ensure states appear in front of nodes */
 }
 
 .state:hover {

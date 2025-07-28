@@ -99,6 +99,13 @@ public class NodeView : VisualElement
             }
 
             UpdatePosition();
+
+            // Update connections
+            graphView.UpdateConnections();
+
+            // Update drag start position for next frame
+            dragStartPosition = evt.localMousePosition;
+
             evt.StopPropagation();
         }
     }

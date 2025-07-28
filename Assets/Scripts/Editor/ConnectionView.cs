@@ -88,16 +88,35 @@ public class ConnectionView : VisualElement
             var sourceNodeView = graphView.GetNodeView(connectionData.SourceNodeId);
             if (sourceNodeView == null) return Vector2.zero;
 
-            var nodeBounds = sourceNodeView.worldBound;
-            return new Vector2(nodeBounds.xMax, nodeBounds.center.y);
+            var graphData = graphView.GetGraphData();
+            if (graphData == null) return Vector2.zero;
+
+            var sourceNode = graphData.GetNodeById(connectionData.SourceNodeId);
+            if (sourceNode == null) return Vector2.zero;
+
+            var panOffset = graphView.GetPanOffset();
+            return new Vector2(
+                sourceNode.Position.x + sourceNode.Size.x + panOffset.x,
+                sourceNode.Position.y + sourceNode.Size.y * 0.5f + panOffset.y
+            );
         }
         else
         {
             // Connection from specific state
-            var stateView = graphView.GetStateView(connectionData.SourceStateId);
-            if (stateView == null) return Vector2.zero;
+            var graphData = graphView.GetGraphData();
+            if (graphData == null) return Vector2.zero;
 
-            return stateView.GetWorldPosition();
+            var sourceState = graphData.GetStateById(connectionData.SourceStateId);
+            if (sourceState == null) return Vector2.zero;
+
+            var panOffset = graphView.GetPanOffset();
+            const float stateWidth = 100f;
+            const float stateHeight = 25f;
+
+            return new Vector2(
+                sourceState.Position.x + stateWidth + panOffset.x,
+                sourceState.Position.y + stateHeight * 0.5f + panOffset.y
+            );
         }
     }
 
@@ -106,19 +125,34 @@ public class ConnectionView : VisualElement
         if (connectionData.IsNodeToNodeConnection || string.IsNullOrEmpty(connectionData.TargetStateId))
         {
             // Connection to entire node
-            var targetNodeView = graphView.GetNodeView(connectionData.TargetNodeId);
-            if (targetNodeView == null) return Vector2.zero;
+            var graphData = graphView.GetGraphData();
+            if (graphData == null) return Vector2.zero;
 
-            var nodeBounds = targetNodeView.worldBound;
-            return new Vector2(nodeBounds.xMin, nodeBounds.center.y);
+            var targetNode = graphData.GetNodeById(connectionData.TargetNodeId);
+            if (targetNode == null) return Vector2.zero;
+
+            var panOffset = graphView.GetPanOffset();
+            return new Vector2(
+                targetNode.Position.x + panOffset.x,
+                targetNode.Position.y + targetNode.Size.y * 0.5f + panOffset.y
+            );
         }
         else
         {
             // Connection to specific state
-            var stateView = graphView.GetStateView(connectionData.TargetStateId);
-            if (stateView == null) return Vector2.zero;
+            var graphData = graphView.GetGraphData();
+            if (graphData == null) return Vector2.zero;
 
-            return stateView.GetWorldPosition();
+            var targetState = graphData.GetStateById(connectionData.TargetStateId);
+            if (targetState == null) return Vector2.zero;
+
+            var panOffset = graphView.GetPanOffset();
+            const float stateHeight = 25f;
+
+            return new Vector2(
+                targetState.Position.x + panOffset.x,
+                targetState.Position.y + stateHeight * 0.5f + panOffset.y
+            );
         }
     }
 

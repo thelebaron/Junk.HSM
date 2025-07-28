@@ -6,6 +6,8 @@ using UnityEngine.UIElements;
 
 public class GraphEditorWindow : EditorWindow
 {
+    private const string SESSION_STATE_KEY = "GraphEditor_CurrentGraph";
+
     private GraphData currentGraph;
     private GraphView graphView;
     private ObjectField graphField;
@@ -19,11 +21,26 @@ public class GraphEditorWindow : EditorWindow
     private VisualElement nodeInspector;
 
     [MenuItem("Window/Graph Editor")]
-    public static void ShowWindow()
+    public static GraphEditorWindow ShowWindow()
     {
         var window = GetWindow<GraphEditorWindow>();
         window.titleContent = new GUIContent("Graph Editor");
         window.Show();
+        return window;
+    }
+
+    public void LoadGraph(GraphData graph)
+    {
+        currentGraph = graph;
+        SaveCurrentGraphReference();
+        if (graphField != null)
+        {
+            graphField.value = graph;
+        }
+        if (graphView != null)
+        {
+            graphView.LoadGraph(graph);
+        }
     }
 
     public void CreateGUI()
@@ -51,6 +68,10 @@ public class GraphEditorWindow : EditorWindow
         var saveButton = new Button(SaveGraph) { text = "Save" };
         toolbar.Add(saveButton);
 
+        // Frame All button
+        var frameAllButton = new Button(FrameAll) { text = "Frame All" };
+        toolbar.Add(frameAllButton);
+
         root.Add(toolbar);
 
         // Create main content area with horizontal layout
@@ -77,11 +98,15 @@ public class GraphEditorWindow : EditorWindow
         {
             root.styleSheets.Add(styleSheet);
         }
+
+        // Restore previously loaded graph after domain reload
+        RestoreCurrentGraph();
     }
 
     private void OnGraphChanged(ChangeEvent<Object> evt)
     {
         currentGraph = evt.newValue as GraphData;
+        SaveCurrentGraphReference();
         if (graphView != null)
         {
             graphView.LoadGraph(currentGraph);
@@ -413,6 +438,19 @@ public class GraphEditorWindow : EditorWindow
                 selectedState.ParentNodeId = newParentNode.Id;
                 newParentNode.AddState(selectedState);
 
+                // Position state in front of the node
+                var nodeCenter = new Vector2(
+                    newParentNode.Position.x + newParentNode.Size.x * 0.5f,
+                    newParentNode.Position.y + newParentNode.Size.y * 0.5f
+                );
+                selectedState.Position = nodeCenter;
+
+                var stateView = graphView.GetStateView(selectedState.Id);
+                if (stateView != null)
+                {
+                    stateView.UpdatePosition();
+                }
+
                 var newNodeView = graphView.GetNodeView(newParentNode.Id);
                 if (newNodeView != null)
                 {
@@ -426,5 +464,47 @@ public class GraphEditorWindow : EditorWindow
 
         // Mark graph as dirty
         EditorUtility.SetDirty(currentGraph);
+    }
+
+    private void FrameAll()
+    {
+        if (graphView != null)
+        {
+            graphView.FrameAll();
+        }
+    }
+
+    private void SaveCurrentGraphReference()
+    {
+        if (currentGraph != null)
+        {
+            var assetPath = AssetDatabase.GetAssetPath(currentGraph);
+            SessionState.SetString(SESSION_STATE_KEY, assetPath);
+        }
+        else
+        {
+            SessionState.EraseString(SESSION_STATE_KEY);
+        }
+    }
+
+    private void RestoreCurrentGraph()
+    {
+        var assetPath = SessionState.GetString(SESSION_STATE_KEY, "");
+        if (!string.IsNullOrEmpty(assetPath))
+        {
+            var graph = AssetDatabase.LoadAssetAtPath<GraphData>(assetPath);
+            if (graph != null)
+            {
+                currentGraph = graph;
+                if (graphField != null)
+                {
+                    graphField.SetValueWithoutNotify(graph);
+                }
+                if (graphView != null)
+                {
+                    graphView.LoadGraph(graph);
+                }
+            }
+        }
     }
 }

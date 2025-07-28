@@ -12,5 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a, type: 3}
   m_Name: NewGraph
   m_EditorClassIdentifier: Assembly-CSharp::GraphData
-  nodes: []
-  states: []
+  nodes:
+  - id: df36f354-850c-4d3f-b85d-9f93c5ebc751
+    name: New Node
+    position: {x: -441, y: 4}
+    size: {x: 260, y: 80}
+    states:
+    - id: 03953289-2fa4-4dfe-b865-54c2d6abfe7e
+      name: New State
+      position: {x: 251, y: 233}
+      parentNodeId: df36f354-850c-4d3f-b85d-9f93c5ebc751
+      outgoingConnections: []
+    outgoingConnections: []
+  states:
+  - id: 03953289-2fa4-4dfe-b865-54c2d6abfe7e
+    name: New State
+    position: {x: -321, y: 49}
+    parentNodeId: df36f354-850c-4d3f-b85d-9f93c5ebc751
+    outgoingConnections: []

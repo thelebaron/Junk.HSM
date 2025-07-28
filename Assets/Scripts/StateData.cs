@@ -25,7 +25,15 @@ public class StateData
 
     public Vector2 Position
     {
-        get => position;
+        get
+        {
+            // Safety check for NaN values
+            if (float.IsNaN(position.x) || float.IsNaN(position.y))
+            {
+                position = Vector2.zero;
+            }
+            return position;
+        }
         set => position = value;
     }
 

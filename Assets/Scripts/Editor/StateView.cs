@@ -18,6 +18,13 @@ public class StateView : VisualElement
         stateData = data;
         graphView = parent;
 
+        // Safety check for state position
+        if (float.IsNaN(stateData.Position.x) || float.IsNaN(stateData.Position.y))
+        {
+            UnityEngine.Debug.LogWarning($"StateView: {stateData.Name} has invalid position, resetting to (0,0)");
+            stateData.Position = Vector2.zero;
+        }
+
         AddToClassList("state");
 
         // Create connection point (visual indicator for connections)
@@ -88,6 +95,12 @@ public class StateView : VisualElement
 
             // Update parent node size if this state belongs to a node
             UpdateParentNodeSize();
+
+            // Update connections
+            graphView.UpdateConnections();
+
+            // Update drag start position for next frame
+            dragStartPosition = evt.localMousePosition;
 
             evt.StopPropagation();
         }

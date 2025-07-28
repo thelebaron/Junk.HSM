@@ -1,0 +1,112 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a, type: 3}
+  m_Name: TestGraphData
+  m_EditorClassIdentifier: Assembly-CSharp::GraphData
+  nodes:
+  - id: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
+    name: freeze
+    position: {x: 50, y: 50}
+    size: {x: 260, y: 105}
+    states:
+    - id: c4071b93-e319-4e18-9b77-e7dbd70f7eb8
+      name: 'freeze : into'
+      position: {x: 70, y: 90}
+      parentNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
+      outgoingConnections: []
+    - id: f99ce659-8064-4da0-9342-adc3aa3380b6
+      name: 'freeze : loop_freeze'
+      position: {x: 70, y: 120}
+      parentNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
+      outgoingConnections:
+      - id: 011eca5a-a86c-4585-9a20-bc987322ae63
+        sourceStateId: f99ce659-8064-4da0-9342-adc3aa3380b6
+        targetStateId: a9d39048-cd93-44fe-84b3-39d56a0256e6
+        sourceNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
+        targetNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
+        isNodeToNodeConnection: 0
+    - id: a9d39048-cd93-44fe-84b3-39d56a0256e6
+      name: 'freeze : to_idle'
+      position: {x: 170, y: 120}
+      parentNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
+      outgoingConnections:
+      - id: 7b8887d7-5cd0-41b1-959b-59b2088c6004
+        sourceStateId: a9d39048-cd93-44fe-84b3-39d56a0256e6
+        targetStateId: 42557690-790f-4f2a-acc8-11926279e8f5
+        sourceNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
+        targetNodeId: 49bcbf5f-8306-42cc-829c-8e91ff35bcc5
+        isNodeToNodeConnection: 0
+    outgoingConnections: []
+  - id: 49bcbf5f-8306-42cc-829c-8e91ff35bcc5
+    name: fire
+    position: {x: 350, y: 50}
+    size: {x: 260, y: 105}
+    states:
+    - id: 42557690-790f-4f2a-acc8-11926279e8f5
+      name: 'fire : from'
+      position: {x: 370, y: 90}
+      parentNodeId: 49bcbf5f-8306-42cc-829c-8e91ff35bcc5
+      outgoingConnections: []
+    - id: e6597ec5-1db6-458d-a14b-4eefc16f73a5
+      name: 'fire : loop_fire'
+      position: {x: 370, y: 120}
+      parentNodeId: 49bcbf5f-8306-42cc-829c-8e91ff35bcc5
+      outgoingConnections: []
+    - id: fb487c8a-cef9-4283-b148-f23fe2f795da
+      name: 'fire : exit'
+      position: {x: 470, y: 120}
+      parentNodeId: 49bcbf5f-8306-42cc-829c-8e91ff35bcc5
+      outgoingConnections: []
+    outgoingConnections: []
+  states:
+  - id: c4071b93-e319-4e18-9b77-e7dbd70f7eb8
+    name: 'freeze : into'
+    position: {x: 70, y: 90}
+    parentNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
+    outgoingConnections: []
+  - id: f99ce659-8064-4da0-9342-adc3aa3380b6
+    name: 'freeze : loop_freeze'
+    position: {x: 70, y: 120}
+    parentNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
+    outgoingConnections:
+    - id: 011eca5a-a86c-4585-9a20-bc987322ae63
+      sourceStateId: f99ce659-8064-4da0-9342-adc3aa3380b6
+      targetStateId: a9d39048-cd93-44fe-84b3-39d56a0256e6
+      sourceNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
+      targetNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
+      isNodeToNodeConnection: 0
+  - id: a9d39048-cd93-44fe-84b3-39d56a0256e6
+    name: 'freeze : to_idle'
+    position: {x: 170, y: 120}
+    parentNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
+    outgoingConnections:
+    - id: 7b8887d7-5cd0-41b1-959b-59b2088c6004
+      sourceStateId: a9d39048-cd93-44fe-84b3-39d56a0256e6
+      targetStateId: 42557690-790f-4f2a-acc8-11926279e8f5
+      sourceNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
+      targetNodeId: 49bcbf5f-8306-42cc-829c-8e91ff35bcc5
+      isNodeToNodeConnection: 0
+  - id: 42557690-790f-4f2a-acc8-11926279e8f5
+    name: 'fire : from'
+    position: {x: 370, y: 90}
+    parentNodeId: 49bcbf5f-8306-42cc-829c-8e91ff35bcc5
+    outgoingConnections: []
+  - id: e6597ec5-1db6-458d-a14b-4eefc16f73a5
+    name: 'fire : loop_fire'
+    position: {x: 370, y: 120}
+    parentNodeId: 49bcbf5f-8306-42cc-829c-8e91ff35bcc5
+    outgoingConnections: []
+  - id: fb487c8a-cef9-4283-b148-f23fe2f795da
+    name: 'fire : exit'
+    position: {x: 470, y: 120}
+    parentNodeId: 49bcbf5f-8306-42cc-829c-8e91ff35bcc5
+    outgoingConnections: []
