@@ -1,0 +1,160 @@
+﻿.graph-view {
+    background-color: rgb(40, 40, 40);
+    flex-grow: 1;
+}
+
+.node {
+    position: absolute;
+    background-color: rgba(60, 60, 60, 0.8);
+    border-color: rgb(100, 100, 100);
+    border-width: 2px;
+    border-radius: 5px;
+    min-width: 150px;
+    min-height: 60px;
+    padding: 0;
+}
+
+.node:hover {
+    border-color: rgb(150, 150, 150);
+    background-color: rgba(70, 70, 70, 0.8);
+}
+
+.node-selected {
+    border-color: rgb(100, 150, 200);
+    border-width: 3px;
+    background-color: rgba(80, 90, 110, 0.8);
+}
+
+.node-title-bar {
+    background-color: rgb(80, 80, 80);
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    padding: 5px 10px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(100, 100, 100);
+}
+
+.node-title {
+    color: rgb(220, 220, 220);
+    font-size: 14px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.states-container {
+    padding: 10px;
+    flex-grow: 1;
+}
+
+.state {
+    position: absolute;
+    background-color: rgb(80, 40, 40);
+    border-color: rgb(120, 60, 60);
+    border-width: 2px;
+    border-radius: 5px;
+    padding: 5px 10px;
+    flex-direction: row;
+    align-items: center;
+    min-height: 25px;
+    min-width: 80px;
+}
+
+.state:hover {
+    background-color: rgb(100, 50, 50);
+    border-color: rgb(150, 80, 80);
+}
+
+.state-selected {
+    background-color: rgb(120, 60, 60);
+    border-color: rgb(200, 100, 100);
+    border-width: 3px;
+}
+
+.connection-point {
+    width: 8px;
+    height: 8px;
+    background-color: rgb(200, 200, 200);
+    border-radius: 4px;
+    margin-right: 5px;
+}
+
+.connection-point:hover {
+    background-color: rgb(255, 255, 255);
+}
+
+.state-label {
+    color: rgb(220, 220, 220);
+    font-size: 12px;
+    flex-grow: 1;
+}
+
+.connection {
+    position: absolute;
+    pointer-events: none;
+}
+
+/* Toolbar styles */
+.unity-toolbar {
+    background-color: rgb(50, 50, 50);
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(100, 100, 100);
+}
+
+.unity-toolbar .unity-object-field {
+    margin: 2px 5px;
+    min-width: 200px;
+}
+
+.unity-toolbar .unity-button {
+    margin: 2px 5px;
+    background-color: rgb(70, 70, 70);
+    border-color: rgb(100, 100, 100);
+    color: rgb(220, 220, 220);
+}
+
+.unity-toolbar .unity-button:hover {
+    background-color: rgb(90, 90, 90);
+}
+
+.unity-toolbar .unity-button:active {
+    background-color: rgb(50, 50, 50);
+}
+
+/* Inspector Panel styles */
+.inspector-panel {
+    background-color: rgb(50, 50, 50);
+    border-left-width: 1px;
+    border-left-color: rgb(100, 100, 100);
+}
+
+.inspector-panel .unity-label {
+    color: rgb(220, 220, 220);
+    margin-bottom: 5px;
+}
+
+.inspector-panel .unity-text-field {
+    margin-bottom: 10px;
+}
+
+.inspector-panel .unity-text-field .unity-text-field__input {
+    background-color: rgb(40, 40, 40);
+    border-color: rgb(80, 80, 80);
+    color: rgb(220, 220, 220);
+}
+
+.inspector-panel .unity-dropdown-field {
+    margin-bottom: 10px;
+}
+
+.inspector-panel .unity-dropdown-field .unity-base-popup-field__input {
+    background-color: rgb(40, 40, 40);
+    border-color: rgb(80, 80, 80);
+    color: rgb(220, 220, 220);
+}
+
+.inspector-section {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(80, 80, 80);
+}

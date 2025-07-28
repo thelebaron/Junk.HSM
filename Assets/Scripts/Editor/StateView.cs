@@ -1,0 +1,191 @@
+﻿using UnityEngine;
+using UnityEngine.UIElements;
+
+public class StateView : VisualElement
+{
+    private StateData stateData;
+    private GraphView graphView;
+    private Label stateLabel;
+    private VisualElement connectionPoint;
+    private bool isDragging = false;
+    private Vector2 dragStartPosition;
+    private bool isSelected = false;
+
+    public StateData StateData => stateData;
+
+    public StateView(StateData data, GraphView parent)
+    {
+        stateData = data;
+        graphView = parent;
+
+        AddToClassList("state");
+
+        // Create connection point (visual indicator for connections)
+        connectionPoint = new VisualElement();
+        connectionPoint.AddToClassList("connection-point");
+        Add(connectionPoint);
+
+        // Create state label
+        stateLabel = new Label(stateData.Name);
+        stateLabel.AddToClassList("state-label");
+        Add(stateLabel);
+
+        // Set initial position
+        UpdatePosition();
+
+        // Register events
+        RegisterCallback<MouseDownEvent>(OnMouseDown);
+        RegisterCallback<MouseMoveEvent>(OnMouseMove);
+        RegisterCallback<MouseUpEvent>(OnMouseUp);
+
+        // Context menu
+        this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+
+        // Make label editable
+        stateLabel.RegisterCallback<MouseDownEvent>(OnLabelMouseDown);
+    }
+
+    public void UpdatePosition()
+    {
+        var panOffset = graphView.GetPanOffset();
+        style.left = stateData.Position.x + panOffset.x;
+        style.top = stateData.Position.y + panOffset.y;
+    }
+
+    private void UpdateParentNodeSize()
+    {
+        if (!string.IsNullOrEmpty(stateData.ParentNodeId))
+        {
+            var parentNodeView = graphView.GetNodeView(stateData.ParentNodeId);
+            if (parentNodeView != null)
+            {
+                parentNodeView.UpdateSize();
+            }
+        }
+    }
+
+    private void OnMouseDown(MouseDownEvent evt)
+    {
+        if (evt.button == 0) // Left mouse button
+        {
+            // Select this state
+            graphView.SelectState(this);
+
+            isDragging = true;
+            dragStartPosition = evt.localMousePosition;
+            this.CaptureMouse();
+            evt.StopPropagation();
+        }
+    }
+
+    private void OnMouseMove(MouseMoveEvent evt)
+    {
+        if (isDragging)
+        {
+            var delta = evt.localMousePosition - dragStartPosition;
+            stateData.Position += delta;
+            UpdatePosition();
+
+            // Update parent node size if this state belongs to a node
+            UpdateParentNodeSize();
+
+            evt.StopPropagation();
+        }
+    }
+
+    private void OnMouseUp(MouseUpEvent evt)
+    {
+        if (evt.button == 0 && isDragging)
+        {
+            isDragging = false;
+            this.ReleaseMouse();
+
+            // Final update of parent node size after dragging is complete
+            UpdateParentNodeSize();
+
+            evt.StopPropagation();
+        }
+    }
+
+    private void OnLabelMouseDown(MouseDownEvent evt)
+    {
+        if (evt.clickCount == 2) // Double click to edit
+        {
+            var textField = new TextField();
+            textField.value = stateData.Name;
+            textField.style.position = Position.Absolute;
+            textField.style.left = stateLabel.layout.x;
+            textField.style.top = stateLabel.layout.y;
+            textField.style.width = stateLabel.layout.width;
+            
+            Add(textField);
+            textField.Focus();
+            
+            textField.RegisterCallback<BlurEvent>((e) => {
+                stateData.Name = textField.value;
+                stateLabel.text = stateData.Name;
+                textField.RemoveFromHierarchy();
+            });
+            
+            textField.RegisterCallback<KeyDownEvent>((e) => {
+                if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
+                {
+                    stateData.Name = textField.value;
+                    stateLabel.text = stateData.Name;
+                    textField.RemoveFromHierarchy();
+                }
+            });
+            
+            evt.StopPropagation();
+        }
+    }
+
+    private void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+    {
+        evt.menu.AppendAction("Delete State", (a) => DeleteState());
+        evt.menu.AppendSeparator();
+        evt.menu.AppendAction("Connect to...", (a) => StartConnection());
+    }
+
+    private void DeleteState()
+    {
+        graphView.RemoveStateView(stateData.Id);
+    }
+
+    private void StartConnection()
+    {
+        // This would start the connection creation process
+        // For now, just log
+        Debug.Log($"Starting connection from state: {stateData.Name}");
+    }
+
+
+
+    public Vector2 GetWorldPosition()
+    {
+        // Get the world position of this state for connection drawing
+        return new Vector2(stateData.Position.x + layout.width * 0.5f, stateData.Position.y + layout.height * 0.5f);
+    }
+
+    public void SetSelected(bool selected)
+    {
+        isSelected = selected;
+
+        if (isSelected)
+        {
+            AddToClassList("state-selected");
+        }
+        else
+        {
+            RemoveFromClassList("state-selected");
+        }
+    }
+
+    public void UpdateLabel()
+    {
+        if (stateLabel != null)
+        {
+            stateLabel.text = stateData.Name;
+        }
+    }
+}
