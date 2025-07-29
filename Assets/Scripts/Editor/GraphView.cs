@@ -115,8 +115,19 @@ public class GraphView : VisualElement
     private void BuildContextualMenu(ContextualMenuPopulateEvent evt)
     {
         lastContextMenuPosition = evt.localMousePosition;
-        evt.menu.AppendAction("Create Node", (a) => CreateNode(lastContextMenuPosition));
-        evt.menu.AppendAction("Create State", (a) => CreateState(lastContextMenuPosition));
+
+        // When a node is selected, show both "Create Node" and "Create State" options
+        if (selectedNodeView != null)
+        {
+            //evt.menu.AppendAction("Create Node", (a) => CreateNodeAssignedTo(lastContextMenuPosition, selectedNodeView.NodeData.Id));
+            evt.menu.AppendAction("Add State", (a) => CreateStateAssignedTo(lastContextMenuPosition, selectedNodeView.NodeData.Id));
+        }
+        else
+        {
+            // When right-clicking empty space, only show "Create Node" (no "Create State")
+            evt.menu.AppendAction("Create Node", (a) => CreateNode(lastContextMenuPosition));
+        }
+
         evt.menu.AppendSeparator();
 
         if (selectedStateView != null)
@@ -148,6 +159,31 @@ public class GraphView : VisualElement
         CreateNodeView(nodeData);
     }
 
+    private void CreateNodeAssignedTo(Vector2 position, string parentNodeId)
+    {
+        if (graphData == null) return;
+
+        var nodeData = new NodeData("New Node", position - panOffset);
+        graphData.AddNode(nodeData);
+        CreateNodeView(nodeData);
+
+        // Auto-assign the new node to the selected parent node by creating a connection
+        var parentNode = graphData.GetNodeById(parentNodeId);
+        if (parentNode != null)
+        {
+            var connection = new ConnectionData(
+                string.Empty,           // No source state (node to node connection)
+                string.Empty,           // No target state (node to node connection)
+                parentNodeId,           // Source node ID
+                nodeData.Id,            // Target node ID
+                true                    // IsNodeToNodeConnection
+            );
+
+            parentNode.AddConnection(connection);
+            RefreshConnections();
+        }
+    }
+
     private void CreateState(Vector2 position)
     {
         if (graphData == null) return;
@@ -155,6 +191,27 @@ public class GraphView : VisualElement
         var stateData = new StateData("New State", position - panOffset, string.Empty);
         graphData.AddState(stateData);
         CreateStateView(stateData);
+    }
+
+    private void CreateStateAssignedTo(Vector2 position, string parentNodeId)
+    {
+        if (graphData == null) return;
+
+        // Create state with the parent node ID assigned
+        var stateData = new StateData("New State", position - panOffset, parentNodeId);
+        graphData.AddState(stateData);
+        CreateStateView(stateData);
+
+        // Update the parent node's size to accommodate the new state
+        var parentNode = graphData.GetNodeById(parentNodeId);
+        if (parentNode != null)
+        {
+            var parentNodeView = GetNodeView(parentNodeId);
+            if (parentNodeView != null)
+            {
+                parentNodeView.UpdateSize();
+            }
+        }
     }
 
     public NodeView GetNodeView(string nodeId)

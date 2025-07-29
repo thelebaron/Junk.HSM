@@ -175,6 +175,7 @@ public class NodeView : VisualElement
     {
         evt.menu.AppendSeparator();
         evt.menu.AppendAction("Delete Node", (a) => DeleteNode());
+        evt.menu.AppendSeparator();
     }
 
 
