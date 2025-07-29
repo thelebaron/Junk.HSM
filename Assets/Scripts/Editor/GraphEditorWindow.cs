@@ -20,6 +20,7 @@ public class GraphEditorWindow : EditorWindow
     private TextField nodeNameField;
     private VisualElement stateInspector;
     private VisualElement nodeInspector;
+    private Label inspectorTitle;
     private bool isConnectionDropdownOpen = false;
 
     [MenuItem("Window/Graph Editor")]
@@ -157,23 +158,16 @@ public class GraphEditorWindow : EditorWindow
         inspectorPanel.style.paddingRight = 10;
 
         // Inspector title
-        var title = new Label("Inspector");
-        title.style.fontSize = 16;
-        title.style.color = Color.white;
-        title.style.marginBottom = 10;
-        title.style.unityFontStyleAndWeight = FontStyle.Bold;
-        inspectorPanel.Add(title);
+        inspectorTitle = new Label("Inspector");
+        inspectorTitle.style.fontSize = 16;
+        inspectorTitle.style.color = Color.white;
+        inspectorTitle.style.marginBottom = 10;
+        inspectorTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+        inspectorPanel.Add(inspectorTitle);
 
         // Create state inspector section
         stateInspector = new VisualElement();
         stateInspector.AddToClassList("inspector-section");
-
-        var stateTitle = new Label("State Properties");
-        stateTitle.style.fontSize = 14;
-        stateTitle.style.color = Color.white;
-        stateTitle.style.marginBottom = 5;
-        stateTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
-        stateInspector.Add(stateTitle);
 
         stateNameField = new TextField("State Name");
         stateNameField.style.marginBottom = 10;
@@ -203,13 +197,6 @@ public class GraphEditorWindow : EditorWindow
         // Create node inspector section
         nodeInspector = new VisualElement();
         nodeInspector.AddToClassList("inspector-section");
-
-        var nodeTitle = new Label("Node Properties");
-        nodeTitle.style.fontSize = 14;
-        nodeTitle.style.color = Color.white;
-        nodeTitle.style.marginBottom = 5;
-        nodeTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
-        nodeInspector.Add(nodeTitle);
 
         nodeNameField = new TextField("Node Name");
         nodeNameField.style.marginBottom = 10;
@@ -277,6 +264,22 @@ public class GraphEditorWindow : EditorWindow
     private void UpdateInspectorContent()
     {
         if (currentGraph == null) return;
+
+        // Update inspector title based on selection
+        if (selectedState != null)
+        {
+            var parentNode = currentGraph.GetNodeById(selectedState.ParentNodeId);
+            var nodeName = parentNode?.Name ?? "Unknown";
+            inspectorTitle.text = $"{nodeName} : {selectedState.Name}";
+        }
+        else if (selectedNode != null)
+        {
+            inspectorTitle.text = selectedNode.Name;
+        }
+        else
+        {
+            inspectorTitle.text = "Inspector";
+        }
 
         // Show/hide appropriate inspector sections
         stateInspector.style.display = selectedState != null ? DisplayStyle.Flex : DisplayStyle.None;
@@ -436,6 +439,11 @@ public class GraphEditorWindow : EditorWindow
                 stateView.UpdateLabel();
             }
 
+            // Update inspector title
+            var parentNode = currentGraph.GetNodeById(selectedState.ParentNodeId);
+            var nodeName = parentNode?.Name ?? "Unknown";
+            inspectorTitle.text = $"{nodeName} : {selectedState.Name}";
+
             // Mark graph as dirty
             if (currentGraph != null)
             {
@@ -456,6 +464,9 @@ public class GraphEditorWindow : EditorWindow
             {
                 nodeView.UpdateLabel();
             }
+
+            // Update inspector title
+            inspectorTitle.text = selectedNode.Name;
 
             // Update any state inspector dropdowns that might be showing
             if (selectedState != null)
@@ -587,6 +598,11 @@ public class GraphEditorWindow : EditorWindow
 
         // Update connections after reassignment
         graphView.RefreshConnections();
+
+        // Update inspector title to reflect new parent node
+        var parentNode = currentGraph.GetNodeById(selectedState.ParentNodeId);
+        var nodeName = parentNode?.Name ?? "Unknown";
+        inspectorTitle.text = $"{nodeName} : {selectedState.Name}";
 
         // Mark graph as dirty
         EditorUtility.SetDirty(currentGraph);
