@@ -40,10 +40,12 @@ public static class ConnectionPointCalculator
     }
 
 
+
+
     /// <summary>
     /// Calculate dynamic connection points between two elements (nodes or states)
     /// </summary>
-    public static (Vector2 sourcePoint, Vector2 targetPoint) CalculateConnectionPoints(
+    public static (Vector2 sourcePoint, Vector2 targetPoint, Edge sourceEdge, Edge targetEdge) CalculateConnectionPoints(
         BoundingBox sourceBounds,
         BoundingBox targetBounds,
         ConnectionData connectionData,
@@ -56,7 +58,27 @@ public static class ConnectionPointCalculator
         var sourcePoint = ApplySpacing(sourceBounds, sourceEdge, connectionData, allConnections, true);
         var targetPoint = ApplySpacing(targetBounds, targetEdge, connectionData, allConnections, false);
 
-        return (sourcePoint, targetPoint);
+        return (sourcePoint, targetPoint, sourceEdge, targetEdge);
+    }
+
+    /// <summary>
+    /// Get the direction vector for a given edge
+    /// </summary>
+    public static Vector2 GetDirectionFromEdge(Edge edge)
+    {
+        switch (edge)
+        {
+            case Edge.Left:
+                return Vector2.left;
+            case Edge.Right:
+                return Vector2.right;
+            case Edge.Top:
+                return Vector2.up;
+            case Edge.Bottom:
+                return Vector2.down;
+            default:
+                return Vector2.right; // Default to right
+        }
     }
 
     /// <summary>

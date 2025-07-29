@@ -7,16 +7,21 @@ using UnityEngine.UIElements;
 /// </summary>
 public static class BezierCurveUtility
 {
+
+
     /// <summary>
-    /// Draws a smooth bezier curve between two points using the provided painter.
+    /// Draws a directional bezier curve between two connection points.
     /// </summary>
     /// <param name="painter">The Painter2D instance to draw with</param>
     /// <param name="startPoint">Starting position of the curve</param>
     /// <param name="endPoint">Ending position of the curve</param>
+    /// <param name="sourceEdge">Edge that the source point is on</param>
+    /// <param name="targetEdge">Edge that the target point is on</param>
     /// <param name="curveStrength">How pronounced the curve should be (default: 100f)</param>
-    public static void DrawBezierCurve(Painter2D painter, Vector2 startPoint, Vector2 endPoint, float curveStrength = 100f)
+    public static void DrawBezierCurve(Painter2D painter, Vector2 startPoint, Vector2 endPoint,
+        ConnectionPointCalculator.Edge sourceEdge, ConnectionPointCalculator.Edge targetEdge, float curveStrength = 100f)
     {
-        var controlPoints = CalculateControlPoints(startPoint, endPoint, curveStrength);
+        var controlPoints = CalculateControlPoints(startPoint, endPoint, sourceEdge, targetEdge, curveStrength);
         DrawBezierCurve(painter, startPoint, controlPoints.Item1, controlPoints.Item2, endPoint);
     }
 
@@ -36,29 +41,7 @@ public static class BezierCurveUtility
         painter.Stroke();
     }
 
-    /// <summary>
-    /// Calculates appropriate control points for a smooth bezier curve between two points.
-    /// The control points are positioned to create a natural-looking curve that flows horizontally
-    /// from the source before curving toward the target.
-    /// </summary>
-    /// <param name="startPoint">Starting position</param>
-    /// <param name="endPoint">Ending position</param>
-    /// <param name="curveStrength">How far the control points extend horizontally</param>
-    /// <returns>Tuple containing the two control points</returns>
-    public static (Vector2, Vector2) CalculateControlPoints(Vector2 startPoint, Vector2 endPoint, float curveStrength = 100f)
-    {
-        // Calculate the distance between points to adjust curve strength dynamically
-        float distance = Vector2.Distance(startPoint, endPoint);
-        
-        // Adjust curve strength based on distance - longer connections get more pronounced curves
-        float adjustedStrength = Mathf.Min(curveStrength, distance * 0.5f);
-        
-        // For horizontal flow, control points extend horizontally from start and end points
-        Vector2 controlPoint1 = new Vector2(startPoint.x + adjustedStrength, startPoint.y);
-        Vector2 controlPoint2 = new Vector2(endPoint.x - adjustedStrength, endPoint.y);
-        
-        return (controlPoint1, controlPoint2);
-    }
+
 
     /// <summary>
     /// Calculates control points with custom direction vectors for more complex curve shapes.
@@ -69,16 +52,35 @@ public static class BezierCurveUtility
     /// <param name="endDirection">Direction vector toward end point</param>
     /// <param name="curveStrength">Strength of the curve</param>
     /// <returns>Tuple containing the two control points</returns>
-    public static (Vector2, Vector2) CalculateControlPointsWithDirection(Vector2 startPoint, Vector2 endPoint, 
+    public static (Vector2, Vector2) CalculateControlPointsWithDirection(Vector2 startPoint, Vector2 endPoint,
         Vector2 startDirection, Vector2 endDirection, float curveStrength = 100f)
     {
         float distance = Vector2.Distance(startPoint, endPoint);
         float adjustedStrength = Mathf.Min(curveStrength, distance * 0.5f);
-        
+
         Vector2 controlPoint1 = startPoint + startDirection.normalized * adjustedStrength;
         Vector2 controlPoint2 = endPoint + endDirection.normalized * adjustedStrength;
-        
+
         return (controlPoint1, controlPoint2);
+    }
+
+    /// <summary>
+    /// Calculates control points based on connection edge directions.
+    /// </summary>
+    /// <param name="startPoint">Starting position</param>
+    /// <param name="endPoint">Ending position</param>
+    /// <param name="sourceEdge">Edge that the source point is on</param>
+    /// <param name="targetEdge">Edge that the target point is on</param>
+    /// <param name="curveStrength">Strength of the curve</param>
+    /// <returns>Tuple containing the two control points</returns>
+    public static (Vector2, Vector2) CalculateControlPoints(Vector2 startPoint, Vector2 endPoint,
+        ConnectionPointCalculator.Edge sourceEdge, ConnectionPointCalculator.Edge targetEdge, float curveStrength = 100f)
+    {
+        // Get direction vectors from the edges
+        Vector2 startDirection = ConnectionPointCalculator.GetDirectionFromEdge(sourceEdge);
+        Vector2 endDirection = -ConnectionPointCalculator.GetDirectionFromEdge(targetEdge); // Negative because we want direction INTO the target
+
+        return CalculateControlPointsWithDirection(startPoint, endPoint, startDirection, endDirection, curveStrength);
     }
 
     /// <summary>
@@ -147,60 +149,7 @@ public static class BezierCurveUtility
         return tangent.normalized;
     }
 
-    /// <summary>
-    /// Draws a bezier curve with visual debug information (control points and tangent lines).
-    /// Useful for debugging curve shapes during development.
-    /// </summary>
-    /// <param name="painter">The Painter2D instance to draw with</param>
-    /// <param name="startPoint">Starting position</param>
-    /// <param name="endPoint">Ending position</param>
-    /// <param name="curveStrength">Curve strength</param>
-    /// <param name="debugColor">Color for debug elements</param>
-    public static void DrawBezierCurveWithDebug(Painter2D painter, Vector2 startPoint, Vector2 endPoint,
-        float curveStrength = 100f, Color debugColor = default)
-    {
-        if (debugColor == default) debugColor = Color.red;
 
-        var controlPoints = CalculateControlPoints(startPoint, endPoint, curveStrength);
-
-        // Store original color
-        var originalColor = painter.strokeColor;
-
-        // Draw the main curve
-        DrawBezierCurve(painter, startPoint, controlPoints.Item1, controlPoints.Item2, endPoint);
-
-        // Draw debug elements
-        painter.strokeColor = debugColor;
-        painter.lineWidth = 1.0f;
-
-        // Draw control point lines
-        painter.BeginPath();
-        painter.MoveTo(startPoint);
-        painter.LineTo(controlPoints.Item1);
-        painter.Stroke();
-
-        painter.BeginPath();
-        painter.MoveTo(endPoint);
-        painter.LineTo(controlPoints.Item2);
-        painter.Stroke();
-
-        // Draw control points as small circles
-        DrawDebugPoint(painter, controlPoints.Item1, 3f);
-        DrawDebugPoint(painter, controlPoints.Item2, 3f);
-
-        // Restore original color
-        painter.strokeColor = originalColor;
-    }
-
-    /// <summary>
-    /// Draws a small circle at the specified position for debugging purposes.
-    /// </summary>
-    private static void DrawDebugPoint(Painter2D painter, Vector2 position, float radius)
-    {
-        painter.BeginPath();
-        painter.Arc(position, radius, 0, 2 * Mathf.PI);
-        painter.Stroke();
-    }
 }
 
 /// <summary>

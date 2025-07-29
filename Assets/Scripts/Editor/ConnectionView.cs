@@ -9,6 +9,8 @@ public class ConnectionView : VisualElement
     // Cache for connection points to avoid duplicate calculations
     private Vector2? cachedSourcePoint;
     private Vector2? cachedTargetPoint;
+    private ConnectionPointCalculator.Edge? cachedSourceEdge;
+    private ConnectionPointCalculator.Edge? cachedTargetEdge;
     private Vector2 lastPanOffset;
     private bool cacheValid = false;
 
@@ -77,18 +79,24 @@ public class ConnectionView : VisualElement
 
         painter.lineWidth = 2.0f;
 
-        // Draw smooth bezier curve instead of straight line
+        // Draw directional bezier curve based on connection edges
         float curveStrength = BezierCurveUtility.GetCurveStrengthForConnectionType(connectionType);
-        BezierCurveUtility.DrawBezierCurve(painter, sourcePos, targetPos, curveStrength);
 
-        // Draw arrow at target using curve direction
-        DrawArrowOnCurve(painter, sourcePos, targetPos, curveStrength);
+        BezierCurveUtility.DrawBezierCurve(painter, sourcePos, targetPos,
+            cachedSourceEdge.Value, cachedTargetEdge.Value, curveStrength);
+
+        // Draw arrow at target using actual curve direction
+        DrawArrowOnCurve(painter, sourcePos, targetPos,
+            cachedSourceEdge.Value, cachedTargetEdge.Value, curveStrength);
     }
 
-    private void DrawArrowOnCurve(Painter2D painter, Vector2 start, Vector2 end, float curveStrength)
+
+
+    private void DrawArrowOnCurve(Painter2D painter, Vector2 start, Vector2 end,
+        ConnectionPointCalculator.Edge sourceEdge, ConnectionPointCalculator.Edge targetEdge, float curveStrength)
     {
-        // Calculate control points for the curve
-        var controlPoints = BezierCurveUtility.CalculateControlPoints(start, end, curveStrength);
+        // Calculate control points for the curve using edge information
+        var controlPoints = BezierCurveUtility.CalculateControlPoints(start, end, sourceEdge, targetEdge, curveStrength);
 
         // Get the direction at the end of the curve (t = 1.0)
         var direction = BezierCurveUtility.GetTangentOnBezierCurve(start, controlPoints.Item1, controlPoints.Item2, end, 1.0f);
@@ -140,6 +148,8 @@ public class ConnectionView : VisualElement
         {
             cachedSourcePoint = Vector2.zero;
             cachedTargetPoint = Vector2.zero;
+            cachedSourceEdge = null;
+            cachedTargetEdge = null;
             cacheValid = true;
             return;
         }
@@ -147,7 +157,8 @@ public class ConnectionView : VisualElement
         var panOffset = graphView.GetPanOffset();
 
         // Check if cache is still valid (pan offset hasn't changed)
-        if (cacheValid && lastPanOffset == panOffset && cachedSourcePoint.HasValue && cachedTargetPoint.HasValue)
+        if (cacheValid && lastPanOffset == panOffset && cachedSourcePoint.HasValue && cachedTargetPoint.HasValue &&
+            cachedSourceEdge.HasValue && cachedTargetEdge.HasValue)
         {
             return; // Use cached values
         }
@@ -162,15 +173,19 @@ public class ConnectionView : VisualElement
         {
             cachedSourcePoint = Vector2.zero;
             cachedTargetPoint = Vector2.zero;
+            cachedSourceEdge = null;
+            cachedTargetEdge = null;
         }
         else
         {
-            // Calculate dynamic connection points once
-            var (sourcePoint, targetPoint) = ConnectionPointCalculator.CalculateConnectionPoints(
+            // Calculate dynamic connection points with edge information
+            var (sourcePoint, targetPoint, sourceEdge, targetEdge) = ConnectionPointCalculator.CalculateConnectionPoints(
                 sourceBounds, targetBounds, connectionData, allConnections);
 
             cachedSourcePoint = sourcePoint;
             cachedTargetPoint = targetPoint;
+            cachedSourceEdge = sourceEdge;
+            cachedTargetEdge = targetEdge;
         }
 
         lastPanOffset = panOffset;
