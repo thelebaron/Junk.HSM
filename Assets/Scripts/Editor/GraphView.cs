@@ -118,6 +118,18 @@ namespace Junk.Yard.Editor
             if (selectedNodeView != null)
             {
                 evt.menu.AppendAction("Add State", (a) => CreateStateAssignedTo(lastContextMenuPosition, selectedNodeView.NodeData.Id));
+
+                // Add INode-derived struct types as prenamed node options with auto-assignment
+                var nodeTypes = NodeTypeScanner.GetAllINodeStructTypes();
+                if (nodeTypes.Count > 0)
+                {
+                    evt.menu.AppendSeparator();
+                    foreach (var nodeType in nodeTypes)
+                    {
+                        var displayName = NodeTypeScanner.GetDisplayName(nodeType);
+                        evt.menu.AppendAction($"Add {displayName} Node", (a) => CreateTypedNodeAssignedTo(lastContextMenuPosition, displayName, selectedNodeView.NodeData.Id));
+                    }
+                }
             }
             // When right-clicking on an unselected node, show "Add State" for that node
             else if (hoveredNodeView != null)
@@ -128,6 +140,18 @@ namespace Junk.Yard.Editor
             {
                 // When right-clicking empty space, only show "Create Node"
                 evt.menu.AppendAction("Create Node", (a) => CreateNode(lastContextMenuPosition));
+
+                // Add INode-derived struct types as prenamed node options
+                var nodeTypes = NodeTypeScanner.GetAllINodeStructTypes();
+                if (nodeTypes.Count > 0)
+                {
+                    evt.menu.AppendSeparator();
+                    foreach (var nodeType in nodeTypes)
+                    {
+                        var displayName = NodeTypeScanner.GetDisplayName(nodeType);
+                        evt.menu.AppendAction($"Add {displayName} Node", (a) => CreateTypedNode(lastContextMenuPosition, displayName));
+                    }
+                }
             }
 
             evt.menu.AppendSeparator();
@@ -166,6 +190,40 @@ namespace Junk.Yard.Editor
             if (GraphData == null) return;
 
             var nodeData = new NodeData("New Node", position - panOffset);
+            GraphData.AddNode(nodeData);
+            CreateNodeView(nodeData);
+
+            // Auto-assign the new node to the selected parent node by creating a connection
+            var parentNode = GraphData.GetNodeById(parentNodeId);
+            if (parentNode != null)
+            {
+                var connection = new ConnectionData(
+                    string.Empty, // No source state (node to node connection)
+                    string.Empty, // No target state (node to node connection)
+                    parentNodeId, // Source node ID
+                    nodeData.Id,  // Target node ID
+                    true          // IsNodeToNodeConnection
+                );
+
+                parentNode.AddConnection(connection);
+                RefreshConnections();
+            }
+        }
+
+        private void CreateTypedNode(Vector2 position, string nodeTypeName)
+        {
+            if (GraphData == null) return;
+
+            var nodeData = new NodeData(nodeTypeName, position - panOffset);
+            GraphData.AddNode(nodeData);
+            CreateNodeView(nodeData);
+        }
+
+        private void CreateTypedNodeAssignedTo(Vector2 position, string nodeTypeName, string parentNodeId)
+        {
+            if (GraphData == null) return;
+
+            var nodeData = new NodeData(nodeTypeName, position - panOffset);
             GraphData.AddNode(nodeData);
             CreateNodeView(nodeData);
 
