@@ -107,8 +107,8 @@ public static class ConnectionPointCalculator
             string hashInput = currentConnection.Id + "_" + (isSource ? "src" : "tgt") + "_" + edge.ToString();
             int hash = hashInput.GetHashCode();
             float offset = Mathf.Abs(hash % 10000) / 10000.0f;
-            float parameter = 0.15f + (offset * 0.7f);
-            return GetPointOnEdge(bounds, edge, Mathf.Clamp01(parameter));
+            float p = 0.15f + (offset * 0.7f);
+            return GetPointOnEdge(bounds, edge, Mathf.Clamp01(p));
         }
 
         // Calculate parameter based on sorted position

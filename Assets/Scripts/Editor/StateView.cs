@@ -13,6 +13,7 @@ public class StateView : VisualElement
     private bool isSelected = false;
 
     public StateData StateData => stateData;
+    public bool IsSelected => isSelected;
 
     public StateView(StateData data, GraphView parent)
     {

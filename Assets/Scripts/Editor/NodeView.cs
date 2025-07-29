@@ -13,6 +13,7 @@ public class NodeView : VisualElement
     private bool isSelected = false;
 
     public NodeData NodeData => nodeData;
+    public bool IsSelected => isSelected;
 
     public NodeView(NodeData data, GraphView parent)
     {

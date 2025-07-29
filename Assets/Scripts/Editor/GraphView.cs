@@ -380,6 +380,9 @@ public class GraphView : VisualElement
         {
             OnStateSelected?.Invoke(null);
         }
+
+        // Update connection opacity based on new selection
+        UpdateConnectionOpacity();
     }
 
     public void SelectNode(NodeView nodeView)
@@ -407,12 +410,27 @@ public class GraphView : VisualElement
         {
             OnNodeSelected?.Invoke(null);
         }
+
+        // Update connection opacity based on new selection
+        UpdateConnectionOpacity();
     }
 
     public void DeselectAll()
     {
         SelectState(null);
         SelectNode(null);
+        // UpdateConnectionOpacity is called by SelectState/SelectNode
+    }
+
+    /// <summary>
+    /// Updates the opacity of all connections based on current selection state
+    /// </summary>
+    private void UpdateConnectionOpacity()
+    {
+        foreach (var connectionView in connectionViews)
+        {
+            connectionView.MarkDirtyRepaint();
+        }
     }
 
     private void CopyState()

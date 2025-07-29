@@ -54,29 +54,36 @@ public class ConnectionView : VisualElement
         // Create a painter for drawing
         var painter = mgc.painter2D;
 
-        // Set color based on connection type
+        // Determine if this connection should be highlighted (100% opacity)
+        bool isHighlighted = IsConnectionHighlighted();
+        float opacity = isHighlighted ? 1.0f : 0.35f;
+
+        // Set color based on connection type with appropriate opacity
         ConnectionType connectionType;
+        Color baseColor;
         if (connectionData.IsNodeToNode())
         {
-            painter.strokeColor = Color.indianRed; // Node to node connections
+            baseColor = Color.indianRed; // Node to node connections
             connectionType = ConnectionType.NodeToNode;
         }
         else if (connectionData.IsNodeToState())
         {
-            painter.strokeColor = Color.yellow; // Node to state connections
+            baseColor = Color.yellow; // Node to state connections
             connectionType = ConnectionType.NodeToState;
         }
         else if (connectionData.IsStateToNode())
         {
-            painter.strokeColor = Color.blue; // State to node connections
+            baseColor = Color.blue; // State to node connections
             connectionType = ConnectionType.StateToNode;
         }
         else
         {
-            painter.strokeColor = Color.white; // State to state connections (default)
+            baseColor = Color.white; // State to state connections (default)
             connectionType = ConnectionType.StateToState;
         }
 
+        // Apply opacity to the base color
+        painter.strokeColor = new Color(baseColor.r, baseColor.g, baseColor.b, opacity);
         painter.lineWidth = 2.0f;
 
         // Draw directional bezier curve based on connection edges
@@ -263,5 +270,45 @@ public class ConnectionView : VisualElement
         // Invalidate cache and force a redraw of the connection
         cacheValid = false;
         MarkDirtyRepaint();
+    }
+
+    /// <summary>
+    /// Determines if this connection should be highlighted (100% opacity) based on selection state
+    /// </summary>
+    private bool IsConnectionHighlighted()
+    {
+        // Check if source node/state is selected
+        if (connectionData.IsNodeToNode() || connectionData.IsNodeToState())
+        {
+            // Source is a node
+            var sourceNodeView = graphView.GetNodeView(connectionData.SourceNodeId);
+            if (sourceNodeView != null && sourceNodeView.IsSelected)
+                return true;
+        }
+        else if (connectionData.IsStateToNode() || connectionData.IsStateToState())
+        {
+            // Source is a state
+            var sourceStateView = graphView.GetStateView(connectionData.SourceStateId);
+            if (sourceStateView != null && sourceStateView.IsSelected)
+                return true;
+        }
+
+        // Check if target node/state is selected
+        if (connectionData.IsNodeToNode() || connectionData.IsStateToNode())
+        {
+            // Target is a node
+            var targetNodeView = graphView.GetNodeView(connectionData.TargetNodeId);
+            if (targetNodeView != null && targetNodeView.IsSelected)
+                return true;
+        }
+        else if (connectionData.IsNodeToState() || connectionData.IsStateToState())
+        {
+            // Target is a state
+            var targetStateView = graphView.GetStateView(connectionData.TargetStateId);
+            if (targetStateView != null && targetStateView.IsSelected)
+                return true;
+        }
+
+        return false;
     }
 }
