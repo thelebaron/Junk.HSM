@@ -45,7 +45,25 @@ public class ConnectionView : VisualElement
         
         // Create a simple line using the painter
         var painter = mgc.painter2D;
-        painter.strokeColor = Color.white;
+
+        // Set color based on connection type
+        if (connectionData.IsNodeToNode())
+        {
+            painter.strokeColor = Color.cyan; // Node to node connections
+        }
+        else if (connectionData.IsNodeToState())
+        {
+            painter.strokeColor = Color.yellow; // Node to state connections
+        }
+        else if (connectionData.IsStateToNode())
+        {
+            painter.strokeColor = Color.magenta; // State to node connections
+        }
+        else
+        {
+            painter.strokeColor = Color.white; // State to state connections (default)
+        }
+
         painter.lineWidth = 2.0f;
         
         // Draw a simple line (could be enhanced with bezier curves)
@@ -82,34 +100,28 @@ public class ConnectionView : VisualElement
 
     private Vector2 GetSourcePosition()
     {
-        if (connectionData.IsNodeToNodeConnection)
+        var graphData = graphView.GetGraphData();
+        if (graphData == null) return Vector2.zero;
+
+        var panOffset = graphView.GetPanOffset();
+
+        if (connectionData.IsNodeToNode() || connectionData.IsNodeToState())
         {
             // Connection from entire node
-            var sourceNodeView = graphView.GetNodeView(connectionData.SourceNodeId);
-            if (sourceNodeView == null) return Vector2.zero;
-
-            var graphData = graphView.GetGraphData();
-            if (graphData == null) return Vector2.zero;
-
             var sourceNode = graphData.GetNodeById(connectionData.SourceNodeId);
             if (sourceNode == null) return Vector2.zero;
 
-            var panOffset = graphView.GetPanOffset();
             return new Vector2(
                 sourceNode.Position.x + sourceNode.Size.x + panOffset.x,
                 sourceNode.Position.y + sourceNode.Size.y * 0.5f + panOffset.y
             );
         }
-        else
+        else if (connectionData.IsStateToState() || connectionData.IsStateToNode())
         {
             // Connection from specific state
-            var graphData = graphView.GetGraphData();
-            if (graphData == null) return Vector2.zero;
-
             var sourceState = graphData.GetStateById(connectionData.SourceStateId);
             if (sourceState == null) return Vector2.zero;
 
-            var panOffset = graphView.GetPanOffset();
             const float stateWidth = 100f;
             const float stateHeight = 25f;
 
@@ -118,35 +130,34 @@ public class ConnectionView : VisualElement
                 sourceState.Position.y + stateHeight * 0.5f + panOffset.y
             );
         }
+
+        return Vector2.zero;
     }
 
     private Vector2 GetTargetPosition()
     {
-        if (connectionData.IsNodeToNodeConnection || string.IsNullOrEmpty(connectionData.TargetStateId))
+        var graphData = graphView.GetGraphData();
+        if (graphData == null) return Vector2.zero;
+
+        var panOffset = graphView.GetPanOffset();
+
+        if (connectionData.IsNodeToNode() || connectionData.IsStateToNode())
         {
             // Connection to entire node
-            var graphData = graphView.GetGraphData();
-            if (graphData == null) return Vector2.zero;
-
             var targetNode = graphData.GetNodeById(connectionData.TargetNodeId);
             if (targetNode == null) return Vector2.zero;
 
-            var panOffset = graphView.GetPanOffset();
             return new Vector2(
                 targetNode.Position.x + panOffset.x,
                 targetNode.Position.y + targetNode.Size.y * 0.5f + panOffset.y
             );
         }
-        else
+        else if (connectionData.IsStateToState() || connectionData.IsNodeToState())
         {
             // Connection to specific state
-            var graphData = graphView.GetGraphData();
-            if (graphData == null) return Vector2.zero;
-
             var targetState = graphData.GetStateById(connectionData.TargetStateId);
             if (targetState == null) return Vector2.zero;
 
-            var panOffset = graphView.GetPanOffset();
             const float stateHeight = 25f;
 
             return new Vector2(
@@ -154,6 +165,8 @@ public class ConnectionView : VisualElement
                 targetState.Position.y + stateHeight * 0.5f + panOffset.y
             );
         }
+
+        return Vector2.zero;
     }
 
     public void UpdateConnection()

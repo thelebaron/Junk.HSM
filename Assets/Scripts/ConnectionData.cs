@@ -80,4 +80,36 @@ public class ConnectionData
     {
         return id?.GetHashCode() ?? 0;
     }
+
+    // Helper methods for connection type determination
+    public bool IsStateToState()
+    {
+        return !string.IsNullOrEmpty(sourceStateId) && !string.IsNullOrEmpty(targetStateId) && !isNodeToNodeConnection;
+    }
+
+    public bool IsNodeToState()
+    {
+        return !string.IsNullOrEmpty(sourceNodeId) && !string.IsNullOrEmpty(targetStateId) &&
+               string.IsNullOrEmpty(sourceStateId) && !isNodeToNodeConnection;
+    }
+
+    public bool IsStateToNode()
+    {
+        return !string.IsNullOrEmpty(sourceStateId) && !string.IsNullOrEmpty(targetNodeId) &&
+               string.IsNullOrEmpty(targetStateId) && !isNodeToNodeConnection;
+    }
+
+    public bool IsNodeToNode()
+    {
+        return isNodeToNodeConnection && !string.IsNullOrEmpty(sourceNodeId) && !string.IsNullOrEmpty(targetNodeId);
+    }
+
+    public string GetConnectionTypeDescription()
+    {
+        if (IsStateToState()) return "State → State";
+        if (IsNodeToState()) return "Node → State";
+        if (IsStateToNode()) return "State → Node";
+        if (IsNodeToNode()) return "Node → Node";
+        return "Unknown";
+    }
 }
