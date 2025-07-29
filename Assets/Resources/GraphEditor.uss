@@ -90,6 +90,10 @@
     flex-grow: 1;
 }
 
+.state-selected .state-label {
+    -unity-font-style: bold;
+}
+
 .connection {
     position: absolute;
     pointer-events: none;

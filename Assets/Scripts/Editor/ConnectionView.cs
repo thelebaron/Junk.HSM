@@ -56,14 +56,14 @@ public class ConnectionView : VisualElement
 
         // Determine if this connection should be highlighted (100% opacity)
         bool isHighlighted = IsConnectionHighlighted();
-        float opacity = isHighlighted ? 1.0f : 0.35f;
+        float opacity = isHighlighted ? 1.0f : 0.45f;
 
         // Set color based on connection type with appropriate opacity
         ConnectionType connectionType;
         Color baseColor;
         if (connectionData.IsNodeToNode())
         {
-            baseColor = Color.indianRed; // Node to node connections
+            baseColor = Color.orangeRed; // Node to node connections
             connectionType = ConnectionType.NodeToNode;
         }
         else if (connectionData.IsNodeToState())
@@ -85,6 +85,8 @@ public class ConnectionView : VisualElement
         // Apply opacity to the base color
         painter.strokeColor = new Color(baseColor.r, baseColor.g, baseColor.b, opacity);
         painter.lineWidth = 2.0f;
+        if(isHighlighted)
+            painter.lineWidth = 3.5f;
 
         // Draw directional bezier curve based on connection edges
         float curveStrength = BezierCurveUtility.GetCurveStrengthForConnectionType(connectionType);

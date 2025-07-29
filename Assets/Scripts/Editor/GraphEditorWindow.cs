@@ -700,7 +700,7 @@ public class GraphEditorWindow : EditorWindow
 
         // Create dropdown choices
         var choices = new List<string>();
-        var targetMap = new Dictionary<string, object>(); // Can be StateData or NodeData
+        var targetMap = new Dictionary<string, object>(); // Key is choice string, value is StateData or NodeData
 
         // Add nodes first
         choices.Add("--- Nodes ---");
@@ -725,7 +725,8 @@ public class GraphEditorWindow : EditorWindow
                 {
                     if (state.Id != selectedState.Id)
                     {
-                        var displayName = $"  {state.Name}";
+                        // Use a unique key that includes context to avoid collisions
+                        var displayName = $"  {state.Name} (same node)";
                         choices.Add(displayName);
                         targetMap[displayName] = state;
                     }
@@ -743,7 +744,8 @@ public class GraphEditorWindow : EditorWindow
                 choices.Add($"--- {node.Name} ---");
                 foreach (var state in node.States)
                 {
-                    var displayName = $"  {state.Name}";
+                    // Use a unique key that includes the parent node name to avoid collisions
+                    var displayName = $"  {state.Name} (from {node.Name})";
                     choices.Add(displayName);
                     targetMap[displayName] = state;
                 }
@@ -768,7 +770,7 @@ public class GraphEditorWindow : EditorWindow
             choices.Add("--- Unassigned States ---");
             foreach (var state in unassignedStates)
             {
-                var displayName = $"  {state.Name}";
+                var displayName = $"  {state.Name} (unassigned)";
                 choices.Add(displayName);
                 targetMap[displayName] = state;
             }
@@ -1018,7 +1020,7 @@ public class GraphEditorWindow : EditorWindow
         if (selectedNode == null || currentGraph == null) return;
 
         var choices = new List<string>();
-        var targetMap = new Dictionary<string, object>(); // Can be NodeData or StateData
+        var targetMap = new Dictionary<string, object>(); // Key is choice string, value is NodeData or StateData
 
         // Add other nodes section
         var otherNodes = currentGraph.Nodes.Where(n => n.Id != selectedNode.Id).ToList();
@@ -1043,7 +1045,8 @@ public class GraphEditorWindow : EditorWindow
             choices.Add($"--- {node.Name} ---");
             foreach (var state in node.States)
             {
-                var displayName = $"  {state.Name}";
+                // Use a unique key that includes the parent node name to avoid collisions
+                var displayName = $"  {state.Name} (from {node.Name})";
                 choices.Add(displayName);
                 targetMap[displayName] = state;
             }
@@ -1067,7 +1070,7 @@ public class GraphEditorWindow : EditorWindow
             choices.Add("--- Unassigned States ---");
             foreach (var state in unassignedStates)
             {
-                var displayName = $"  {state.Name}";
+                var displayName = $"  {state.Name} (unassigned)";
                 choices.Add(displayName);
                 targetMap[displayName] = state;
             }
