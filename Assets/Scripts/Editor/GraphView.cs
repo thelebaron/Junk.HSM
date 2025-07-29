@@ -117,8 +117,6 @@ public class GraphView : VisualElement
         evt.menu.AppendAction("Create Node", (a) => CreateNode(lastContextMenuPosition));
         evt.menu.AppendAction("Create State", (a) => CreateState(lastContextMenuPosition));
         evt.menu.AppendSeparator();
-        evt.menu.AppendAction("Recalculate All Node Sizes", (a) => RecalculateAllNodeSizes());
-        evt.menu.AppendSeparator();
 
         if (selectedStateView != null)
         {
