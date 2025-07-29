@@ -2,89 +2,93 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class StateData
+namespace Junk.Yard.Editor
 {
-    [SerializeField] private string               name;
-    [SerializeField] private string               id;
-    [SerializeField] private Vector2              position; // Changed from localPosition to position (world position)
-    [SerializeField] private string               parentNodeId;
-    [SerializeField] private List<ConnectionData> outgoingConnections = new List<ConnectionData>();
-
-    public string Id
+    [System.Serializable]
+    public class StateData
     {
-        get => id;
-        set => id = value;
-    }
+        [SerializeField] private string               name;
+        [SerializeField] private string               id;
+        [SerializeField] private Vector2              position; // Changed from localPosition to position (world position)
+        [SerializeField] private string               parentNodeId;
+        [SerializeField] private List<ConnectionData> outgoingConnections = new List<ConnectionData>();
 
-    public string Name
-    {
-        get => name;
-        set => name = value;
-    }
-
-    public Vector2 Position
-    {
-        get
+        public string Id
         {
-            // Safety check for NaN values
-            if (float.IsNaN(position.x) || float.IsNaN(position.y))
+            get => id;
+            set => id = value;
+        }
+
+        public string Name
+        {
+            get => name;
+            set => name = value;
+        }
+
+        public Vector2 Position
+        {
+            get
             {
-                position = Vector2.zero;
+                // Safety check for NaN values
+                if (float.IsNaN(position.x) || float.IsNaN(position.y))
+                {
+                    position = Vector2.zero;
+                }
+
+                return position;
             }
-            return position;
+            set => position = value;
         }
-        set => position = value;
-    }
 
-    public string ParentNodeId
-    {
-        get => parentNodeId;
-        set => parentNodeId = value;
-    }
-
-    public List<ConnectionData> OutgoingConnections
-    {
-        get => outgoingConnections;
-        set => outgoingConnections = value;
-    }
-
-    public StateData()
-    {
-        id = Guid.NewGuid().ToString();
-        name = "New State";
-        position = Vector2.zero;
-        parentNodeId = string.Empty;
-        outgoingConnections = new List<ConnectionData>();
-    }
-
-    public StateData(string stateName, Vector2 statePosition, string nodeId)
-    {
-        id = Guid.NewGuid().ToString();
-        name = stateName;
-        position = statePosition;
-        parentNodeId = nodeId;
-        outgoingConnections = new List<ConnectionData>();
-    }
-
-    public void AddConnection(ConnectionData connection)
-    {
-        if (connection != null && !outgoingConnections.Contains(connection))
+        public string ParentNodeId
         {
-            outgoingConnections.Add(connection);
+            get => parentNodeId;
+            set => parentNodeId = value;
         }
-    }
 
-    public void RemoveConnection(ConnectionData connection)
-    {
-        if (connection != null)
+        public List<ConnectionData> OutgoingConnections
         {
-            outgoingConnections.Remove(connection);
+            get => outgoingConnections;
+            set => outgoingConnections = value;
         }
-    }
 
-    public void RemoveConnectionById(string connectionId)
-    {
-        outgoingConnections.RemoveAll(c => c.Id == connectionId);
+        public StateData()
+        {
+            id                  = Guid.NewGuid().ToString();
+            name                = "New State";
+            position            = Vector2.zero;
+            parentNodeId        = string.Empty;
+            outgoingConnections = new List<ConnectionData>();
+        }
+
+        public StateData(string stateName, Vector2 statePosition, string nodeId)
+        {
+            id                  = Guid.NewGuid().ToString();
+            name                = stateName;
+            position            = statePosition;
+            parentNodeId        = nodeId;
+            outgoingConnections = new List<ConnectionData>();
+        }
+
+        public void AddConnection(ConnectionData connection)
+        {
+            if (connection != null && !outgoingConnections.Contains(connection))
+            {
+                outgoingConnections.Add(connection);
+            }
+        }
+
+        public void RemoveConnection(ConnectionData connection)
+        {
+            if (connection != null)
+            {
+                outgoingConnections.Remove(connection);
+            }
+        }
+
+        public void RemoveConnectionById(string connectionId)
+        {
+            outgoingConnections.RemoveAll(c => c.Id == connectionId);
+        }
     }
 }

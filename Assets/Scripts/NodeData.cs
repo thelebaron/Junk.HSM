@@ -2,157 +2,160 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class NodeData
+namespace Junk.Yard.Editor
 {
-    [SerializeField] private string               name;
-    [SerializeField] private string               id;
-    [SerializeField] private Vector2              position;
-    [SerializeField] private Vector2              size;
-    [SerializeField] private List<StateData>      states;
-    [SerializeField] private List<ConnectionData> outgoingConnections = new List<ConnectionData>();
-
-    public string Id
+    [System.Serializable]
+    public class NodeData
     {
-        get => id;
-        set => id = value;
-    }
+        [SerializeField] private string               name;
+        [SerializeField] private string               id;
+        [SerializeField] private Vector2              position;
+        [SerializeField] private Vector2              size;
+        [SerializeField] private List<StateData>      states;
+        [SerializeField] private List<ConnectionData> outgoingConnections = new List<ConnectionData>();
 
-    public string Name
-    {
-        get => name;
-        set => name = value;
-    }
-
-    public Vector2 Position
-    {
-        get => position;
-        set => position = value;
-    }
-
-    public Vector2 Size
-    {
-        get => size;
-        set => size = value;
-    }
-
-    public List<StateData> States
-    {
-        get => states;
-        set => states = value;
-    }
-
-    public List<ConnectionData> OutgoingConnections
-    {
-        get => outgoingConnections;
-        set => outgoingConnections = value;
-    }
-
-    public NodeData()
-    {
-        id = Guid.NewGuid().ToString();
-        name = "New Node";
-        position = Vector2.zero;
-        size = new Vector2(200, 100); // Smaller default size
-        states = new List<StateData>();
-        outgoingConnections = new List<ConnectionData>();
-    }
-
-    public NodeData(string nodeName, Vector2 nodePosition)
-    {
-        id = Guid.NewGuid().ToString();
-        name = nodeName;
-        position = nodePosition;
-        size = new Vector2(200, 100); // Smaller default size
-        states = new List<StateData>();
-        outgoingConnections = new List<ConnectionData>();
-    }
-
-    public void AddState(StateData state, GraphData graphData = null)
-    {
-        if (state != null)
+        public string Id
         {
-            state.ParentNodeId = id;
-            states.Add(state);
-            RecalculateSize(graphData);
-        }
-    }
-
-    public void RemoveState(StateData state, GraphData graphData = null)
-    {
-        if (state != null)
-        {
-            states.Remove(state);
-            RecalculateSize(graphData);
-        }
-    }
-
-    public StateData GetStateById(string stateId)
-    {
-        return states.Find(s => s.Id == stateId);
-    }
-
-    public void AddConnection(ConnectionData connection)
-    {
-        if (connection != null && !outgoingConnections.Contains(connection))
-        {
-            outgoingConnections.Add(connection);
-        }
-    }
-
-    public void RemoveConnection(ConnectionData connection)
-    {
-        if (connection != null)
-        {
-            outgoingConnections.Remove(connection);
-        }
-    }
-
-    public void RemoveConnectionById(string connectionId)
-    {
-        outgoingConnections.RemoveAll(c => c.Id == connectionId);
-    }
-
-    public void RecalculateSize(GraphData graphData = null)
-    {
-        const float stateWidth = 100f;
-        const float stateHeight = 25f;
-        const float padding = 20f;
-        const float titleHeight = 30f;
-        const float minWidth = 200f;
-        const float minHeight = 60f;
-
-        // Use internal states list - no need for GraphData dependency
-        if (states.Count == 0)
-        {
-            size = new Vector2(minWidth, minHeight);
-            return;
+            get => id;
+            set => id = value;
         }
 
-        // Calculate bounds of all states in world space
-        float minX = float.MaxValue, minY = float.MaxValue;
-        float maxX = float.MinValue, maxY = float.MinValue;
-
-        foreach (var state in states)
+        public string Name
         {
-            minX = Mathf.Min(minX, state.Position.x);
-            minY = Mathf.Min(minY, state.Position.y);
-            maxX = Mathf.Max(maxX, state.Position.x + stateWidth);
-            maxY = Mathf.Max(maxY, state.Position.y + stateHeight);
+            get => name;
+            set => name = value;
         }
 
-        // Calculate the new node position and size to encompass all states
-        float newNodeX = minX - padding;
-        float newNodeY = minY - padding - titleHeight;
-        float newWidth = (maxX - minX) + (padding * 2);
-        float newHeight = (maxY - minY) + (padding * 2) + titleHeight;
+        public Vector2 Position
+        {
+            get => position;
+            set => position = value;
+        }
 
-        // Ensure minimum size
-        newWidth = Mathf.Max(newWidth, minWidth);
-        newHeight = Mathf.Max(newHeight, minHeight);
+        public Vector2 Size
+        {
+            get => size;
+            set => size = value;
+        }
 
-        // Update position and size
-        position = new Vector2(newNodeX, newNodeY);
-        size = new Vector2(newWidth, newHeight);
+        public List<StateData> States
+        {
+            get => states;
+            set => states = value;
+        }
+
+        public List<ConnectionData> OutgoingConnections
+        {
+            get => outgoingConnections;
+            set => outgoingConnections = value;
+        }
+
+        public NodeData()
+        {
+            id                  = Guid.NewGuid().ToString();
+            name                = "New Node";
+            position            = Vector2.zero;
+            size                = new Vector2(200, 100); // Smaller default size
+            states              = new List<StateData>();
+            outgoingConnections = new List<ConnectionData>();
+        }
+
+        public NodeData(string nodeName, Vector2 nodePosition)
+        {
+            id                  = Guid.NewGuid().ToString();
+            name                = nodeName;
+            position            = nodePosition;
+            size                = new Vector2(200, 100); // Smaller default size
+            states              = new List<StateData>();
+            outgoingConnections = new List<ConnectionData>();
+        }
+
+        public void AddState(StateData state, GraphData graphData = null)
+        {
+            if (state != null)
+            {
+                state.ParentNodeId = id;
+                states.Add(state);
+                RecalculateSize(graphData);
+            }
+        }
+
+        public void RemoveState(StateData state, GraphData graphData = null)
+        {
+            if (state != null)
+            {
+                states.Remove(state);
+                RecalculateSize(graphData);
+            }
+        }
+
+        public StateData GetStateById(string stateId)
+        {
+            return states.Find(s => s.Id == stateId);
+        }
+
+        public void AddConnection(ConnectionData connection)
+        {
+            if (connection != null && !outgoingConnections.Contains(connection))
+            {
+                outgoingConnections.Add(connection);
+            }
+        }
+
+        public void RemoveConnection(ConnectionData connection)
+        {
+            if (connection != null)
+            {
+                outgoingConnections.Remove(connection);
+            }
+        }
+
+        public void RemoveConnectionById(string connectionId)
+        {
+            outgoingConnections.RemoveAll(c => c.Id == connectionId);
+        }
+
+        public void RecalculateSize(GraphData graphData = null)
+        {
+            const float stateWidth  = 100f;
+            const float stateHeight = 25f;
+            const float padding     = 20f;
+            const float titleHeight = 30f;
+            const float minWidth    = 200f;
+            const float minHeight   = 60f;
+
+            // Use internal states list - no need for GraphData dependency
+            if (states.Count == 0)
+            {
+                size = new Vector2(minWidth, minHeight);
+                return;
+            }
+
+            // Calculate bounds of all states in world space
+            float minX = float.MaxValue, minY = float.MaxValue;
+            float maxX = float.MinValue, maxY = float.MinValue;
+
+            foreach (var state in states)
+            {
+                minX = Mathf.Min(minX, state.Position.x);
+                minY = Mathf.Min(minY, state.Position.y);
+                maxX = Mathf.Max(maxX, state.Position.x + stateWidth);
+                maxY = Mathf.Max(maxY, state.Position.y + stateHeight);
+            }
+
+            // Calculate the new node position and size to encompass all states
+            float newNodeX  = minX          - padding;
+            float newNodeY  = minY          - padding - titleHeight;
+            float newWidth  = (maxX - minX) + (padding * 2);
+            float newHeight = (maxY - minY) + (padding * 2) + titleHeight;
+
+            // Ensure minimum size
+            newWidth  = Mathf.Max(newWidth, minWidth);
+            newHeight = Mathf.Max(newHeight, minHeight);
+
+            // Update position and size
+            position = new Vector2(newNodeX, newNodeY);
+            size     = new Vector2(newWidth, newHeight);
+        }
     }
 }

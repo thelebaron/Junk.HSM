@@ -1,124 +1,128 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "New Graph", menuName = "Graph Editor/Graph Data")]
-public class GraphData : ScriptableObject
+namespace Junk.Yard.Editor
 {
-    [SerializeField] private List<NodeData> nodes = new List<NodeData>();
-
-    public List<NodeData> Nodes
+    [CreateAssetMenu(fileName = "New Graph", menuName = "Graph Editor/Graph Data")]
+    public class GraphData : ScriptableObject
     {
-        get => nodes;
-        set => nodes = value;
-    }
+        [SerializeField] private List<NodeData> nodes = new List<NodeData>();
 
-    public void AddNode(NodeData node)
-    {
-        if (node != null && !nodes.Contains(node))
+        public List<NodeData> Nodes
         {
-            nodes.Add(node);
+            get => nodes;
+            set => nodes = value;
         }
-    }
 
-    public void RemoveNode(NodeData node)
-    {
-        if (node != null)
+        public void AddNode(NodeData node)
         {
-            // Remove all connections related to this node from other nodes/states
-            foreach (var otherNode in nodes)
+            if (node != null && !nodes.Contains(node))
             {
-                if (otherNode.Id != node.Id)
-                {
-                    otherNode.OutgoingConnections.RemoveAll(c => c.TargetNodeId == node.Id);
+                nodes.Add(node);
+            }
+        }
 
-                    // Remove connections from states within other nodes
-                    foreach (var state in otherNode.States)
+        public void RemoveNode(NodeData node)
+        {
+            if (node != null)
+            {
+                // Remove all connections related to this node from other nodes/states
+                foreach (var otherNode in nodes)
+                {
+                    if (otherNode.Id != node.Id)
                     {
-                        state.OutgoingConnections.RemoveAll(c => c.TargetNodeId == node.Id);
+                        otherNode.OutgoingConnections.RemoveAll(c => c.TargetNodeId == node.Id);
+
+                        // Remove connections from states within other nodes
+                        foreach (var state in otherNode.States)
+                        {
+                            state.OutgoingConnections.RemoveAll(c => c.TargetNodeId == node.Id);
+                        }
+                    }
+                }
+
+                nodes.Remove(node);
+            }
+        }
+
+        public void AddState(StateData state)
+        {
+            if (state != null)
+            {
+                // Add to the parent node if it exists
+                var parentNode = GetNodeById(state.ParentNodeId);
+                if (parentNode != null && !parentNode.States.Contains(state))
+                {
+                    parentNode.AddState(state, this);
+                }
+            }
+        }
+
+        public void RemoveState(StateData state)
+        {
+            if (state != null)
+            {
+                // Remove from parent node
+                var parentNode = GetNodeById(state.ParentNodeId);
+                if (parentNode != null)
+                {
+                    parentNode.RemoveState(state, this);
+                }
+
+                // Remove all connections related to this state from all nodes and their states
+                foreach (var node in nodes)
+                {
+                    node.OutgoingConnections.RemoveAll(c => c.TargetStateId == state.Id);
+
+                    foreach (var nodeState in node.States)
+                    {
+                        nodeState.OutgoingConnections.RemoveAll(c => c.TargetStateId == state.Id);
                     }
                 }
             }
-
-            nodes.Remove(node);
         }
-    }
 
-    public void AddState(StateData state)
-    {
-        if (state != null)
+        public NodeData GetNodeById(string nodeId)
         {
-            // Add to the parent node if it exists
-            var parentNode = GetNodeById(state.ParentNodeId);
-            if (parentNode != null && !parentNode.States.Contains(state))
-            {
-                parentNode.AddState(state, this);
-            }
+            return nodes.Find(n => n.Id == nodeId);
         }
-    }
 
-    public void RemoveState(StateData state)
-    {
-        if (state != null)
+        public StateData GetStateById(string stateId)
         {
-            // Remove from parent node
-            var parentNode = GetNodeById(state.ParentNodeId);
-            if (parentNode != null)
-            {
-                parentNode.RemoveState(state, this);
-            }
-
-            // Remove all connections related to this state from all nodes and their states
             foreach (var node in nodes)
             {
-                node.OutgoingConnections.RemoveAll(c => c.TargetStateId == state.Id);
-
-                foreach (var nodeState in node.States)
+                var state = node.GetStateById(stateId);
+                if (state != null)
                 {
-                    nodeState.OutgoingConnections.RemoveAll(c => c.TargetStateId == state.Id);
+                    return state;
                 }
             }
+
+            return null;
         }
-    }
 
-    public NodeData GetNodeById(string nodeId)
-    {
-        return nodes.Find(n => n.Id == nodeId);
-    }
-
-    public StateData GetStateById(string stateId)
-    {
-        foreach (var node in nodes)
+        public List<StateData> GetStatesForNode(string nodeId)
         {
-            var state = node.GetStateById(stateId);
-            if (state != null)
-            {
-                return state;
-            }
+            var node = GetNodeById(nodeId);
+            return node?.States ?? new List<StateData>();
         }
-        return null;
-    }
 
-    public List<StateData> GetStatesForNode(string nodeId)
-    {
-        var node = GetNodeById(nodeId);
-        return node?.States ?? new List<StateData>();
-    }
-
-    public List<ConnectionData> GetAllConnections()
-    {
-        var allConnections = new List<ConnectionData>();
-
-        // Collect connections from nodes and their states
-        foreach (var node in nodes)
+        public List<ConnectionData> GetAllConnections()
         {
-            allConnections.AddRange(node.OutgoingConnections);
+            var allConnections = new List<ConnectionData>();
 
-            foreach (var state in node.States)
+            // Collect connections from nodes and their states
+            foreach (var node in nodes)
             {
-                allConnections.AddRange(state.OutgoingConnections);
-            }
-        }
+                allConnections.AddRange(node.OutgoingConnections);
 
-        return allConnections;
+                foreach (var state in node.States)
+                {
+                    allConnections.AddRange(state.OutgoingConnections);
+                }
+            }
+
+            return allConnections;
+        }
     }
 }
