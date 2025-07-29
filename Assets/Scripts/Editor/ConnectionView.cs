@@ -39,56 +39,85 @@ public class ConnectionView : VisualElement
         // Get source and target positions
         var sourcePos = GetSourcePosition();
         var targetPos = GetTargetPosition();
-        
+
         if (sourcePos == Vector2.zero || targetPos == Vector2.zero)
             return;
-        
-        // Create a simple line using the painter
+
+        // Create a painter for drawing
         var painter = mgc.painter2D;
 
         // Set color based on connection type
+        ConnectionType connectionType;
         if (connectionData.IsNodeToNode())
         {
             painter.strokeColor = Color.indianRed; // Node to node connections
+            connectionType = ConnectionType.NodeToNode;
         }
         else if (connectionData.IsNodeToState())
         {
             painter.strokeColor = Color.yellow; // Node to state connections
+            connectionType = ConnectionType.NodeToState;
         }
         else if (connectionData.IsStateToNode())
         {
             painter.strokeColor = Color.blue; // State to node connections
+            connectionType = ConnectionType.StateToNode;
         }
         else
         {
             painter.strokeColor = Color.white; // State to state connections (default)
+            connectionType = ConnectionType.StateToState;
         }
 
         painter.lineWidth = 2.0f;
-        
-        // Draw a simple line (could be enhanced with bezier curves)
-        painter.BeginPath();
-        painter.MoveTo(sourcePos);
-        painter.LineTo(targetPos);
-        painter.Stroke();
-        
-        // Draw arrow at target
-        DrawArrow(painter, sourcePos, targetPos);
+
+        // Draw smooth bezier curve instead of straight line
+        float curveStrength = BezierCurveUtility.GetCurveStrengthForConnectionType(connectionType);
+        BezierCurveUtility.DrawBezierCurve(painter, sourcePos, targetPos, curveStrength);
+
+        // Draw arrow at target using curve direction
+        DrawArrowOnCurve(painter, sourcePos, targetPos, curveStrength);
     }
 
+    private void DrawArrowOnCurve(Painter2D painter, Vector2 start, Vector2 end, float curveStrength)
+    {
+        // Calculate control points for the curve
+        var controlPoints = BezierCurveUtility.CalculateControlPoints(start, end, curveStrength);
+
+        // Get the direction at the end of the curve (t = 1.0)
+        var direction = BezierCurveUtility.GetTangentOnBezierCurve(start, controlPoints.Item1, controlPoints.Item2, end, 1.0f);
+
+        var arrowSize = 10f;
+
+        // Calculate arrow points using the curve direction
+        var arrowPoint1 = end - direction * arrowSize;
+        var perpendicular = new Vector2(-direction.y, direction.x);
+
+        var arrow1 = arrowPoint1 + perpendicular * arrowSize * 0.5f;
+        var arrow2 = arrowPoint1 - perpendicular * arrowSize * 0.5f;
+
+        // Draw arrow
+        painter.BeginPath();
+        painter.MoveTo(end);
+        painter.LineTo(arrow1);
+        painter.MoveTo(end);
+        painter.LineTo(arrow2);
+        painter.Stroke();
+    }
+
+    // Keep the old DrawArrow method for backward compatibility if needed
     private void DrawArrow(Painter2D painter, Vector2 start, Vector2 end)
     {
         var direction = (end - start).normalized;
         var arrowSize = 10f;
-        var arrowAngle = 30f * Mathf.Deg2Rad;
-        
+
         // Calculate arrow points
         var arrowPoint1 = end - direction * arrowSize;
         var perpendicular = new Vector2(-direction.y, direction.x);
-        
+
         var arrow1 = arrowPoint1 + perpendicular * arrowSize * 0.5f;
         var arrow2 = arrowPoint1 - perpendicular * arrowSize * 0.5f;
-        
+
         // Draw arrow
         painter.BeginPath();
         painter.MoveTo(end);
