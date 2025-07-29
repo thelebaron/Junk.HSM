@@ -273,11 +273,12 @@ public class ConnectionView : VisualElement
     }
 
     /// <summary>
-    /// Determines if this connection should be highlighted (100% opacity) based on selection state
+    /// Determines if this connection should be highlighted (100% opacity) based on selection state.
+    /// Only highlights outgoing connections (where the selected node/state is the source).
     /// </summary>
     private bool IsConnectionHighlighted()
     {
-        // Check if source node/state is selected
+        // Check if source node/state is selected (outgoing connections only)
         if (connectionData.IsNodeToNode() || connectionData.IsNodeToState())
         {
             // Source is a node
@@ -290,22 +291,6 @@ public class ConnectionView : VisualElement
             // Source is a state
             var sourceStateView = graphView.GetStateView(connectionData.SourceStateId);
             if (sourceStateView != null && sourceStateView.IsSelected)
-                return true;
-        }
-
-        // Check if target node/state is selected
-        if (connectionData.IsNodeToNode() || connectionData.IsStateToNode())
-        {
-            // Target is a node
-            var targetNodeView = graphView.GetNodeView(connectionData.TargetNodeId);
-            if (targetNodeView != null && targetNodeView.IsSelected)
-                return true;
-        }
-        else if (connectionData.IsNodeToState() || connectionData.IsStateToState())
-        {
-            // Target is a state
-            var targetStateView = graphView.GetStateView(connectionData.TargetStateId);
-            if (targetStateView != null && targetStateView.IsSelected)
                 return true;
         }
 
