@@ -269,9 +269,9 @@ public class StateView : VisualElement
             return;
         }
 
-        // Create and show dropdown
+        // Create and show dropdown with no pre-selection
         var worldBound = this.worldBound;
-        var dropdown = new DropdownField("Connect to:", choices, 0);
+        var dropdown = new DropdownField("Connect to:", choices, -1);
         dropdown.style.position = Position.Absolute;
         dropdown.style.left = worldBound.x;
         dropdown.style.top = worldBound.yMax + 5;
@@ -284,6 +284,13 @@ public class StateView : VisualElement
         dropdown.RegisterValueChangedCallback(evt =>
         {
             var selectedChoice = evt.newValue;
+
+            // Skip empty selections and header items
+            if (string.IsNullOrEmpty(selectedChoice) || selectedChoice.StartsWith("---"))
+            {
+                return;
+            }
+
             if (targetMap.TryGetValue(selectedChoice, out var target))
             {
                 if (target is StateData targetState)

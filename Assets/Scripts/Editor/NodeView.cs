@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -230,28 +231,54 @@ public class NodeView : VisualElement
         var choices = new List<string>();
         var targetMap = new Dictionary<string, object>(); // Can be NodeData or StateData
 
-        // Add other nodes
-        foreach (var node in graphData.Nodes)
+        // Add other nodes section
+        var otherNodes = graphData.Nodes.Where(n => n.Id != nodeData.Id).ToList();
+        if (otherNodes.Count > 0)
         {
-            if (node.Id != nodeData.Id) // Don't include self
+            choices.Add("--- Other Nodes ---");
+            foreach (var node in otherNodes)
             {
-                var displayName = $"[Node] {node.Name}";
+                var displayName = $"  {node.Name}";
                 choices.Add(displayName);
                 targetMap[displayName] = node;
             }
         }
 
-        // Add all states
-        foreach (var state in graphData.States)
+        // Add states grouped by their parent nodes
+        var nodeGroups = graphData.States
+            .Where(s => !string.IsNullOrEmpty(s.ParentNodeId))
+            .GroupBy(s => s.ParentNodeId)
+            .ToList();
+
+        foreach (var group in nodeGroups)
         {
-            var parentNode = graphData.GetNodeById(state.ParentNodeId);
-            var parentNodeName = parentNode?.Name ?? "No Parent";
-            var displayName = $"[State] {state.Name} ({parentNodeName})";
-            choices.Add(displayName);
-            targetMap[displayName] = state;
+            var parentNode = graphData.GetNodeById(group.Key);
+            if (parentNode != null)
+            {
+                choices.Add($"--- {parentNode.Name} ---");
+                foreach (var state in group)
+                {
+                    var displayName = $"  {state.Name}";
+                    choices.Add(displayName);
+                    targetMap[displayName] = state;
+                }
+            }
         }
 
-        if (choices.Count == 0)
+        // Add unassigned states
+        var unassignedStates = graphData.States.Where(s => string.IsNullOrEmpty(s.ParentNodeId)).ToList();
+        if (unassignedStates.Count > 0)
+        {
+            choices.Add("--- Unassigned States ---");
+            foreach (var state in unassignedStates)
+            {
+                var displayName = $"  {state.Name}";
+                choices.Add(displayName);
+                targetMap[displayName] = state;
+            }
+        }
+
+        if (choices.Count == 0 || targetMap.Count == 0)
         {
             Debug.Log("No available targets to connect to");
             return;
@@ -259,7 +286,7 @@ public class NodeView : VisualElement
 
         // Create and show dropdown
         var worldBound = this.worldBound;
-        var dropdown = new DropdownField("Connect to:", choices, 0);
+        var dropdown = new DropdownField("Connect to:", choices, -1); // Start with no selection
         dropdown.style.position = Position.Absolute;
         dropdown.style.left = worldBound.x;
         dropdown.style.top = worldBound.yMax + 5;
@@ -272,6 +299,13 @@ public class NodeView : VisualElement
         dropdown.RegisterValueChangedCallback(evt =>
         {
             var selectedChoice = evt.newValue;
+
+            // Skip header items (those that start with "---") and empty selections
+            if (string.IsNullOrEmpty(selectedChoice) || selectedChoice.StartsWith("---"))
+            {
+                return;
+            }
+
             if (targetMap.TryGetValue(selectedChoice, out var target))
             {
                 if (target is NodeData targetNode)

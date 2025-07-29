@@ -5,11 +5,11 @@ using UnityEngine;
 [System.Serializable]
 public class NodeData
 {
-    [SerializeField] private string id;
-    [SerializeField] private string name;
-    [SerializeField] private Vector2 position;
-    [SerializeField] private Vector2 size;
-    [SerializeField] private List<StateData> states;
+    [SerializeField] private string               name;
+    [SerializeField] private string               id;
+    [SerializeField] private Vector2              position;
+    [SerializeField] private Vector2              size;
+    [SerializeField] private List<StateData>      states;
     [SerializeField] private List<ConnectionData> outgoingConnections = new List<ConnectionData>();
 
     public string Id

@@ -49,7 +49,7 @@ public class ConnectionView : VisualElement
         // Set color based on connection type
         if (connectionData.IsNodeToNode())
         {
-            painter.strokeColor = Color.cyan; // Node to node connections
+            painter.strokeColor = Color.indianRed; // Node to node connections
         }
         else if (connectionData.IsNodeToState())
         {
@@ -57,7 +57,7 @@ public class ConnectionView : VisualElement
         }
         else if (connectionData.IsStateToNode())
         {
-            painter.strokeColor = Color.magenta; // State to node connections
+            painter.strokeColor = Color.blue; // State to node connections
         }
         else
         {

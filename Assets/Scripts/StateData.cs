@@ -5,10 +5,10 @@ using UnityEngine;
 [System.Serializable]
 public class StateData
 {
-    [SerializeField] private string id;
-    [SerializeField] private string name;
-    [SerializeField] private Vector2 position; // Changed from localPosition to position (world position)
-    [SerializeField] private string parentNodeId;
+    [SerializeField] private string               name;
+    [SerializeField] private string               id;
+    [SerializeField] private Vector2              position; // Changed from localPosition to position (world position)
+    [SerializeField] private string               parentNodeId;
     [SerializeField] private List<ConnectionData> outgoingConnections = new List<ConnectionData>();
 
     public string Id

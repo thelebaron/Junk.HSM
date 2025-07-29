@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -646,14 +647,21 @@ public class GraphEditorWindow : EditorWindow
             return;
         }
 
-        // Create temporary dropdown
-        var dropdown = new DropdownField("Select target:", choices, 0);
+        // Create temporary dropdown with no pre-selection
+        var dropdown = new DropdownField("Select target:", choices, -1);
         dropdown.name = "connection-dropdown"; // Add name for identification
         stateInspector.Add(dropdown);
 
         dropdown.RegisterValueChangedCallback(evt =>
         {
             var selectedChoice = evt.newValue;
+
+            // Skip empty selections and header items
+            if (string.IsNullOrEmpty(selectedChoice) || selectedChoice.StartsWith("---"))
+            {
+                return;
+            }
+
             if (targetMap.TryGetValue(selectedChoice, out var target))
             {
                 if (target is StateData targetState)
@@ -841,35 +849,61 @@ public class GraphEditorWindow : EditorWindow
         var choices = new List<string>();
         var targetMap = new Dictionary<string, object>(); // Can be NodeData or StateData
 
-        // Add other nodes
-        foreach (var node in currentGraph.Nodes)
+        // Add other nodes section
+        var otherNodes = currentGraph.Nodes.Where(n => n.Id != selectedNode.Id).ToList();
+        if (otherNodes.Count > 0)
         {
-            if (node.Id != selectedNode.Id) // Don't include self
+            choices.Add("--- Other Nodes ---");
+            foreach (var node in otherNodes)
             {
-                var displayName = $"[Node] {node.Name}";
+                var displayName = $"  {node.Name}";
                 choices.Add(displayName);
                 targetMap[displayName] = node;
             }
         }
 
-        // Add all states
-        foreach (var state in currentGraph.States)
+        // Add states grouped by their parent nodes
+        var nodeGroups = currentGraph.States
+            .Where(s => !string.IsNullOrEmpty(s.ParentNodeId))
+            .GroupBy(s => s.ParentNodeId)
+            .ToList();
+
+        foreach (var group in nodeGroups)
         {
-            var parentNode = currentGraph.GetNodeById(state.ParentNodeId);
-            var parentNodeName = parentNode?.Name ?? "No Parent";
-            var displayName = $"[State] {state.Name} ({parentNodeName})";
-            choices.Add(displayName);
-            targetMap[displayName] = state;
+            var parentNode = currentGraph.GetNodeById(group.Key);
+            if (parentNode != null)
+            {
+                choices.Add($"--- {parentNode.Name} ---");
+                foreach (var state in group)
+                {
+                    var displayName = $"  {state.Name}";
+                    choices.Add(displayName);
+                    targetMap[displayName] = state;
+                }
+            }
         }
 
-        if (choices.Count == 0)
+        // Add unassigned states
+        var unassignedStates = currentGraph.States.Where(s => string.IsNullOrEmpty(s.ParentNodeId)).ToList();
+        if (unassignedStates.Count > 0)
+        {
+            choices.Add("--- Unassigned States ---");
+            foreach (var state in unassignedStates)
+            {
+                var displayName = $"  {state.Name}";
+                choices.Add(displayName);
+                targetMap[displayName] = state;
+            }
+        }
+
+        if (choices.Count == 0 || targetMap.Count == 0)
         {
             Debug.Log("No available targets to connect to");
             return;
         }
 
-        // Create dropdown
-        var dropdown = new DropdownField("Connect to:", choices, 0);
+        // Create dropdown with no pre-selection
+        var dropdown = new DropdownField("Connect to:", choices, -1);
         dropdown.style.marginBottom = 5;
         nodeInspector.Add(dropdown);
 
@@ -877,6 +911,13 @@ public class GraphEditorWindow : EditorWindow
         dropdown.RegisterValueChangedCallback(evt =>
         {
             var selectedChoice = evt.newValue;
+
+            // Skip empty selections and header items
+            if (string.IsNullOrEmpty(selectedChoice) || selectedChoice.StartsWith("---"))
+            {
+                return;
+            }
+
             if (targetMap.TryGetValue(selectedChoice, out var target))
             {
                 if (target is NodeData targetNode)
