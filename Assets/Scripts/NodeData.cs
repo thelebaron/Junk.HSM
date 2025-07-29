@@ -122,14 +122,8 @@ public class NodeData
         const float minWidth = 200f;
         const float minHeight = 60f;
 
-        // Get states from GraphData if available, otherwise use internal list
-        var statesToUse = states;
-        if (graphData != null)
-        {
-            statesToUse = graphData.GetStatesForNode(id);
-        }
-
-        if (statesToUse.Count == 0)
+        // Use internal states list - no need for GraphData dependency
+        if (states.Count == 0)
         {
             size = new Vector2(minWidth, minHeight);
             return;
@@ -139,7 +133,7 @@ public class NodeData
         float minX = float.MaxValue, minY = float.MaxValue;
         float maxX = float.MinValue, maxY = float.MinValue;
 
-        foreach (var state in statesToUse)
+        foreach (var state in states)
         {
             minX = Mathf.Min(minX, state.Position.x);
             minY = Mathf.Min(minY, state.Position.y);

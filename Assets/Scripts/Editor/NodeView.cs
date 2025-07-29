@@ -42,7 +42,7 @@ public class NodeView : VisualElement
         RegisterCallback<MouseUpEvent>(OnMouseUp);
 
         // Context menu
-        this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+        //this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
 
         // Make title editable
         titleLabel.RegisterCallback<MouseDownEvent>(OnTitleMouseDown);

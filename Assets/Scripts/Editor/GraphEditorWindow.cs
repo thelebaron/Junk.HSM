@@ -650,8 +650,19 @@ public class GraphEditorWindow : EditorWindow
             }
         }
 
-        // Add unassigned states
-        var unassignedStates = currentGraph.States.FindAll(s => string.IsNullOrEmpty(s.ParentNodeId) && s.Id != selectedState.Id);
+        // Add unassigned states (states that exist in nodes but have empty ParentNodeId)
+        var unassignedStates = new List<StateData>();
+        foreach (var node in currentGraph.Nodes)
+        {
+            foreach (var state in node.States)
+            {
+                if (string.IsNullOrEmpty(state.ParentNodeId) && state.Id != selectedState.Id)
+                {
+                    unassignedStates.Add(state);
+                }
+            }
+        }
+
         if (unassignedStates.Count > 0)
         {
             choices.Add("--- Unassigned States ---");
@@ -885,28 +896,34 @@ public class GraphEditorWindow : EditorWindow
         }
 
         // Add states grouped by their parent nodes
-        var nodeGroups = currentGraph.States
-            .Where(s => !string.IsNullOrEmpty(s.ParentNodeId))
-            .GroupBy(s => s.ParentNodeId)
+        var nodeGroups = currentGraph.Nodes
+            .Where(n => n.States.Count > 0)
             .ToList();
 
-        foreach (var group in nodeGroups)
+        foreach (var node in nodeGroups)
         {
-            var parentNode = currentGraph.GetNodeById(group.Key);
-            if (parentNode != null)
+            choices.Add($"--- {node.Name} ---");
+            foreach (var state in node.States)
             {
-                choices.Add($"--- {parentNode.Name} ---");
-                foreach (var state in group)
+                var displayName = $"  {state.Name}";
+                choices.Add(displayName);
+                targetMap[displayName] = state;
+            }
+        }
+
+        // Add unassigned states (states that exist in nodes but have empty ParentNodeId)
+        var unassignedStates = new List<StateData>();
+        foreach (var node in currentGraph.Nodes)
+        {
+            foreach (var state in node.States)
+            {
+                if (string.IsNullOrEmpty(state.ParentNodeId))
                 {
-                    var displayName = $"  {state.Name}";
-                    choices.Add(displayName);
-                    targetMap[displayName] = state;
+                    unassignedStates.Add(state);
                 }
             }
         }
 
-        // Add unassigned states
-        var unassignedStates = currentGraph.States.Where(s => string.IsNullOrEmpty(s.ParentNodeId)).ToList();
         if (unassignedStates.Count > 0)
         {
             choices.Add("--- Unassigned States ---");

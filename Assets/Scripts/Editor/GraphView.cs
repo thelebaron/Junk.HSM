@@ -68,10 +68,13 @@ public class GraphView : VisualElement
             CreateNodeView(nodeData);
         }
 
-        // Create state views (states are now independent of nodes visually)
-        foreach (var stateData in graphData.States)
+        // Create state views from all nodes' states
+        foreach (var nodeData in graphData.Nodes)
         {
-            CreateStateView(stateData);
+            foreach (var stateData in nodeData.States)
+            {
+                CreateStateView(stateData);
+            }
         }
 
         // Create connection views from all connections
@@ -667,23 +670,27 @@ public class GraphView : VisualElement
         }
 
         // Fix corrupted state positions (including extremely large values)
-        for (int i = 0; i < graphData.States.Count; i++)
+        int stateIndex = 0;
+        foreach (var node in graphData.Nodes)
         {
-            var state = graphData.States[i];
-            if (float.IsNaN(state.Position.x) || float.IsNaN(state.Position.y) ||
-                Mathf.Abs(state.Position.x) > 10000 || Mathf.Abs(state.Position.y) > 10000)
+            foreach (var state in node.States)
             {
-                UnityEngine.Debug.LogWarning($"Fixed corrupted position for state: {state.Name}");
-                // Position states in a grid if they're corrupted
-                state.Position = new Vector2(150 + (i % 5) * 120, 150 + (i / 5) * 50);
+                if (float.IsNaN(state.Position.x) || float.IsNaN(state.Position.y) ||
+                    Mathf.Abs(state.Position.x) > 10000 || Mathf.Abs(state.Position.y) > 10000)
+                {
+                    UnityEngine.Debug.LogWarning($"Fixed corrupted position for state: {state.Name}");
+                    // Position states in a grid if they're corrupted
+                    state.Position = new Vector2(150 + (stateIndex % 5) * 120, 150 + (stateIndex / 5) * 50);
+                }
+                stateIndex++;
             }
         }
     }
 
     private Rect CalculateContentBounds()
     {
- 
-        if (graphData == null || (graphData.Nodes.Count == 0 && graphData.States.Count == 0))
+        // Check if we have any nodes (states are now contained within nodes)
+        if (graphData == null || graphData.Nodes.Count == 0)
         {
             return new Rect(0, 0, 0, 0);
         }
@@ -700,16 +707,19 @@ public class GraphView : VisualElement
             maxY = Mathf.Max(maxY, node.Position.y + node.Size.y);
         }
 
-        // Include all states
-        foreach (var state in graphData.States)
+        // Include all states from all nodes
+        foreach (var node in graphData.Nodes)
         {
-            const float stateWidth = 100f; // Approximate state width
-            const float stateHeight = 25f; // Approximate state height
+            foreach (var state in node.States)
+            {
+                const float stateWidth = 100f; // Approximate state width
+                const float stateHeight = 25f; // Approximate state height
 
-            minX = Mathf.Min(minX, state.Position.x);
-            minY = Mathf.Min(minY, state.Position.y);
-            maxX = Mathf.Max(maxX, state.Position.x + stateWidth);
-            maxY = Mathf.Max(maxY, state.Position.y + stateHeight);
+                minX = Mathf.Min(minX, state.Position.x);
+                minY = Mathf.Min(minY, state.Position.y);
+                maxX = Mathf.Max(maxX, state.Position.x + stateWidth);
+                maxY = Mathf.Max(maxY, state.Position.y + stateHeight);
+            }
         }
 
         // If no valid bounds found, return zero rect

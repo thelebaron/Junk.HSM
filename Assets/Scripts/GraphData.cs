@@ -5,18 +5,11 @@ using UnityEngine;
 public class GraphData : ScriptableObject
 {
     [SerializeField] private List<NodeData> nodes = new List<NodeData>();
-    [SerializeField] private List<StateData> states = new List<StateData>(); // All states in the graph
 
     public List<NodeData> Nodes
     {
         get => nodes;
         set => nodes = value;
-    }
-
-    public List<StateData> States
-    {
-        get => states;
-        set => states = value;
     }
 
     public void AddNode(NodeData node)
@@ -31,21 +24,19 @@ public class GraphData : ScriptableObject
     {
         if (node != null)
         {
-            // Remove all states belonging to this node
-            states.RemoveAll(s => s.ParentNodeId == node.Id);
-
             // Remove all connections related to this node from other nodes/states
             foreach (var otherNode in nodes)
             {
                 if (otherNode.Id != node.Id)
                 {
                     otherNode.OutgoingConnections.RemoveAll(c => c.TargetNodeId == node.Id);
-                }
-            }
 
-            foreach (var state in states)
-            {
-                state.OutgoingConnections.RemoveAll(c => c.TargetNodeId == node.Id);
+                    // Remove connections from states within other nodes
+                    foreach (var state in otherNode.States)
+                    {
+                        state.OutgoingConnections.RemoveAll(c => c.TargetNodeId == node.Id);
+                    }
+                }
             }
 
             nodes.Remove(node);
@@ -54,16 +45,13 @@ public class GraphData : ScriptableObject
 
     public void AddState(StateData state)
     {
-        if (state != null && !states.Contains(state))
+        if (state != null)
         {
-            states.Add(state);
-
-            // Also add to the parent node if it exists
+            // Add to the parent node if it exists
             var parentNode = GetNodeById(state.ParentNodeId);
             if (parentNode != null && !parentNode.States.Contains(state))
             {
-                parentNode.States.Add(state);
-                parentNode.RecalculateSize(this);
+                parentNode.AddState(state, this);
             }
         }
     }
@@ -72,9 +60,6 @@ public class GraphData : ScriptableObject
     {
         if (state != null)
         {
-            // Remove from global states list
-            states.Remove(state);
-
             // Remove from parent node
             var parentNode = GetNodeById(state.ParentNodeId);
             if (parentNode != null)
@@ -82,15 +67,15 @@ public class GraphData : ScriptableObject
                 parentNode.RemoveState(state, this);
             }
 
-            // Remove all connections related to this state
+            // Remove all connections related to this state from all nodes and their states
             foreach (var node in nodes)
             {
                 node.OutgoingConnections.RemoveAll(c => c.TargetStateId == state.Id);
-            }
 
-            foreach (var otherState in states)
-            {
-                otherState.OutgoingConnections.RemoveAll(c => c.TargetStateId == state.Id);
+                foreach (var nodeState in node.States)
+                {
+                    nodeState.OutgoingConnections.RemoveAll(c => c.TargetStateId == state.Id);
+                }
             }
         }
     }
@@ -102,28 +87,36 @@ public class GraphData : ScriptableObject
 
     public StateData GetStateById(string stateId)
     {
-        return states.Find(s => s.Id == stateId);
+        foreach (var node in nodes)
+        {
+            var state = node.GetStateById(stateId);
+            if (state != null)
+            {
+                return state;
+            }
+        }
+        return null;
     }
 
     public List<StateData> GetStatesForNode(string nodeId)
     {
-        return states.FindAll(s => s.ParentNodeId == nodeId);
+        var node = GetNodeById(nodeId);
+        return node?.States ?? new List<StateData>();
     }
 
     public List<ConnectionData> GetAllConnections()
     {
         var allConnections = new List<ConnectionData>();
 
-        // Collect connections from nodes
+        // Collect connections from nodes and their states
         foreach (var node in nodes)
         {
             allConnections.AddRange(node.OutgoingConnections);
-        }
 
-        // Collect connections from states
-        foreach (var state in states)
-        {
-            allConnections.AddRange(state.OutgoingConnections);
+            foreach (var state in node.States)
+            {
+                allConnections.AddRange(state.OutgoingConnections);
+            }
         }
 
         return allConnections;
