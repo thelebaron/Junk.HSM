@@ -23,7 +23,7 @@ namespace Junk.Yard.Editor
         private static void OpenGraphEditor(GraphData graphData)
         {
             // Check if Graph Editor window is already open
-            var existingWindow = EditorWindow.GetWindow<GraphEditorWindow>(false, null, false);
+            var existingWindow = EditorWindow.GetWindow<WebEditorWindow>(false, null, false);
 
             if (existingWindow != null)
             {
@@ -34,7 +34,7 @@ namespace Junk.Yard.Editor
             else
             {
                 // Open new window and load the graph
-                var window = GraphEditorWindow.ShowWindow();
+                var window = WebEditorWindow.OpenWindow();
                 window.LoadGraph(graphData);
             }
         }

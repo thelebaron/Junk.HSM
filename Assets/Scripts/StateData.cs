@@ -1,29 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Junk.Yard.Editor
 {
-    [System.Serializable]
+    [Serializable]
     public class StateData
     {
-        [SerializeField] private string               name;
-        [SerializeField] private string               id;
+        public                   string               Name;
+        public                   string               Id;
         [SerializeField] private Vector2              position; // Changed from localPosition to position (world position)
-        [SerializeField] private string               parentNodeId;
-        [SerializeField] private List<ConnectionData> outgoingConnections = new List<ConnectionData>();
-
-        public string Id
-        {
-            get => id;
-            set => id = value;
-        }
-
-        public string Name
-        {
-            get => name;
-            set => name = value;
-        }
+        public                   string               ParentNodeId;
+        public                   List<ConnectionData> OutgoingConnections;
 
         public Vector2 Position
         {
@@ -40,41 +29,29 @@ namespace Junk.Yard.Editor
             set => position = value;
         }
 
-        public string ParentNodeId
-        {
-            get => parentNodeId;
-            set => parentNodeId = value;
-        }
-
-        public List<ConnectionData> OutgoingConnections
-        {
-            get => outgoingConnections;
-            set => outgoingConnections = value;
-        }
-
         public StateData()
         {
-            id                  = Guid.NewGuid().ToString();
-            name                = "New State";
+            Id                  = Guid.NewGuid().ToString();
+            Name                = "New State";
             position            = Vector2.zero;
-            parentNodeId        = string.Empty;
-            outgoingConnections = new List<ConnectionData>();
+            ParentNodeId        = string.Empty;
+            OutgoingConnections = new List<ConnectionData>();
         }
 
         public StateData(string stateName, Vector2 statePosition, string nodeId)
         {
-            id                  = Guid.NewGuid().ToString();
-            name                = stateName;
+            Id                  = Guid.NewGuid().ToString();
+            Name                = stateName;
             position            = statePosition;
-            parentNodeId        = nodeId;
-            outgoingConnections = new List<ConnectionData>();
+            ParentNodeId        = nodeId;
+            OutgoingConnections = new List<ConnectionData>();
         }
 
         public void AddConnection(ConnectionData connection)
         {
-            if (connection != null && !outgoingConnections.Contains(connection))
+            if (connection != null && !OutgoingConnections.Contains(connection))
             {
-                outgoingConnections.Add(connection);
+                OutgoingConnections.Add(connection);
             }
         }
 
@@ -82,13 +59,13 @@ namespace Junk.Yard.Editor
         {
             if (connection != null)
             {
-                outgoingConnections.Remove(connection);
+                OutgoingConnections.Remove(connection);
             }
         }
 
         public void RemoveConnectionById(string connectionId)
         {
-            outgoingConnections.RemoveAll(c => c.Id == connectionId);
+            OutgoingConnections.RemoveAll(c => c.Id == connectionId);
         }
     }
 }

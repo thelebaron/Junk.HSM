@@ -197,7 +197,7 @@ namespace Junk.Yard.Editor
             // If state has a parent node, show "nodeName : stateName"
             if (!string.IsNullOrEmpty(stateData.ParentNodeId))
             {
-                var parentNode = graphView.GetGraphData()?.GetNodeById(stateData.ParentNodeId);
+                var parentNode = graphView.GraphData?.GetNodeById(stateData.ParentNodeId);
                 if (parentNode != null)
                 {
                     return $"{parentNode.Name} : {stateData.Name}";

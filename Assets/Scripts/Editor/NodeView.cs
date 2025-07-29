@@ -62,7 +62,7 @@ namespace Junk.Yard.Editor
             var oldPosition = nodeData.Position;
 
             // Pass GraphData to ensure we get the most up-to-date state information
-            var graphData = graphView.GetGraphData();
+            var graphData = graphView.GraphData;
             nodeData.RecalculateSize(graphData);
 
             // Update visual size
@@ -101,7 +101,7 @@ namespace Junk.Yard.Editor
                 nodeData.Position += delta;
 
                 // Move all child states with the node
-                var graphData = graphView.GetGraphData();
+                var graphData = graphView.GraphData;
                 if (graphData != null)
                 {
                     var childStates = graphData.GetStatesForNode(nodeData.Id);
@@ -213,7 +213,7 @@ namespace Junk.Yard.Editor
         private void UpdateChildStateLabels()
         {
             // Update labels for all states that belong to this node
-            var graphData = graphView.GetGraphData();
+            var graphData = graphView.GraphData;
             if (graphData != null)
             {
                 var nodeStates = graphData.GetStatesForNode(nodeData.Id);

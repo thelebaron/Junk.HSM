@@ -7,9 +7,9 @@ using UnityEngine.UIElements;
 
 namespace Junk.Yard.Editor
 {
-    public class GraphEditorWindow : EditorWindow
+    public class WebEditorWindow : EditorWindow
     {
-        private const string SESSION_STATE_KEY = "GraphEditor_CurrentGraph";
+        private const string SessionStateKey = "WebEditor_CurrentGraph";
 
         private GraphData     currentGraph;
         private GraphView     graphView;
@@ -25,15 +25,22 @@ namespace Junk.Yard.Editor
         private Label         inspectorTitle;
         private bool          isConnectionDropdownOpen = false;
 
-        [MenuItem("Window/Graph Editor")]
-        public static GraphEditorWindow ShowWindow()
+        [MenuItem("Window/Web Editor")]
+        public static void ShowWindow()
         {
-            var window = GetWindow<GraphEditorWindow>();
-            window.titleContent = new GUIContent("Graph Editor");
+            var window = GetWindow<WebEditorWindow>();
+            window.titleContent = new GUIContent("Web Editor");
+            window.Show();
+        }
+        
+        public static WebEditorWindow OpenWindow()
+        {
+            var window = GetWindow<WebEditorWindow>();
+            window.titleContent = new GUIContent("Web Editor");
             window.Show();
             return window;
         }
-
+        
         public void LoadGraph(GraphData graph)
         {
             currentGraph = graph;
@@ -879,17 +886,17 @@ namespace Junk.Yard.Editor
             if (currentGraph != null)
             {
                 var assetPath = AssetDatabase.GetAssetPath(currentGraph);
-                SessionState.SetString(SESSION_STATE_KEY, assetPath);
+                SessionState.SetString(SessionStateKey, assetPath);
             }
             else
             {
-                SessionState.EraseString(SESSION_STATE_KEY);
+                SessionState.EraseString(SessionStateKey);
             }
         }
 
         private void RestoreCurrentGraph()
         {
-            var assetPath = SessionState.GetString(SESSION_STATE_KEY, "");
+            var assetPath = SessionState.GetString(SessionStateKey, "");
             if (!string.IsNullOrEmpty(assetPath))
             {
                 var graph = AssetDatabase.LoadAssetAtPath<GraphData>(assetPath);

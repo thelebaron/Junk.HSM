@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Unity.Assertions;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -7,7 +8,6 @@ namespace Junk.Yard.Editor
 {
     public class GraphView : VisualElement
     {
-        private GraphData                     graphData;
         private Dictionary<string, NodeView>  nodeViews       = new Dictionary<string, NodeView>();
         private Dictionary<string, StateView> stateViews      = new Dictionary<string, StateView>();
         private List<ConnectionView>          connectionViews = new List<ConnectionView>();
@@ -19,16 +19,14 @@ namespace Junk.Yard.Editor
         private Vector2                       lastContextMenuPosition;
         private StateData                     copiedStateData;
         private NodeData                      copiedNodeData;
-
+        public  GraphData                     GraphData { get; private set; }
 
         // Connection creation state
-        private bool          isCreatingConnection = false;
         private StateData     connectionSourceState;
         private VisualElement connectionPreview;
 
         public event Action<StateData> OnStateSelected;
         public event Action<NodeData>  OnNodeSelected;
-
 
 
         public GraphView()
@@ -56,41 +54,33 @@ namespace Junk.Yard.Editor
 
         public void LoadGraph(GraphData graph)
         {
-            graphData = graph;
+            GraphData = graph;
             Clear();
 
-            if (graphData == null) return;
+            if (GraphData == null) return;
 
             // Fix any corrupted data before loading
             FixCorruptedData();
 
             // Create node views
-            foreach (var nodeData in graphData.Nodes)
+            foreach (var nodeData in GraphData.Nodes)
             {
                 CreateNodeView(nodeData);
             }
 
             // Create state views from all nodes' states
-            foreach (var nodeData in graphData.Nodes)
-            {
-                foreach (var stateData in nodeData.States)
-                {
-                    CreateStateView(stateData);
-                }
-            }
+            foreach (var nodeData in GraphData.Nodes)
+            foreach (var stateData in nodeData.States)
+                CreateStateView(stateData);
 
             // Create connection views from all connections
-            var allConnections = graphData.GetAllConnections();
+            var allConnections = GraphData.GetAllConnections();
             foreach (var connectionData in allConnections)
-            {
                 CreateConnectionView(connectionData);
-            }
 
             // Update all node sizes to ensure they encompass their states
             foreach (var nodeView in nodeViews.Values)
-            {
                 nodeView.UpdateSize();
-            }
 
             // Frame the view to show all content (delay to ensure layout is ready)
             schedule.Execute(() => FrameAll()).ExecuteLater(100);
@@ -164,23 +154,23 @@ namespace Junk.Yard.Editor
 
         private void CreateNode(Vector2 position)
         {
-            if (graphData == null) return;
+            if (GraphData == null) return;
 
             var nodeData = new NodeData("New Node", position - panOffset);
-            graphData.AddNode(nodeData);
+            GraphData.AddNode(nodeData);
             CreateNodeView(nodeData);
         }
 
         private void CreateNodeAssignedTo(Vector2 position, string parentNodeId)
         {
-            if (graphData == null) return;
+            if (GraphData == null) return;
 
             var nodeData = new NodeData("New Node", position - panOffset);
-            graphData.AddNode(nodeData);
+            GraphData.AddNode(nodeData);
             CreateNodeView(nodeData);
 
             // Auto-assign the new node to the selected parent node by creating a connection
-            var parentNode = graphData.GetNodeById(parentNodeId);
+            var parentNode = GraphData.GetNodeById(parentNodeId);
             if (parentNode != null)
             {
                 var connection = new ConnectionData(
@@ -196,26 +186,17 @@ namespace Junk.Yard.Editor
             }
         }
 
-        private void CreateState(Vector2 position)
-        {
-            if (graphData == null) return;
-
-            var stateData = new StateData("New State", position - panOffset, string.Empty);
-            graphData.AddState(stateData);
-            CreateStateView(stateData);
-        }
-
         private void CreateStateAssignedTo(Vector2 position, string parentNodeId)
         {
-            if (graphData == null) return;
+            if (GraphData == null) return;
 
             // Create state with the parent node ID assigned
             var stateData = new StateData("New State", position - panOffset, parentNodeId);
-            graphData.AddState(stateData);
+            GraphData.AddState(stateData);
             CreateStateView(stateData);
 
             // Update the parent node's size to accommodate the new state
-            var parentNode = graphData.GetNodeById(parentNodeId);
+            var parentNode = GraphData.GetNodeById(parentNodeId);
             if (parentNode != null)
             {
                 var parentNodeView = GetNodeView(parentNodeId);
@@ -242,9 +223,7 @@ namespace Junk.Yard.Editor
             foreach (var nodeView in nodeViews.Values)
             {
                 if (nodeView != null && IsPositionInNodeView(position, nodeView))
-                {
                     return nodeView;
-                }
             }
 
             return null;
@@ -282,9 +261,9 @@ namespace Junk.Yard.Editor
             if (nodeViews.TryGetValue(nodeId, out var nodeView))
             {
                 // First, remove all state views that belong to this node
-                if (graphData != null)
+                if (GraphData != null)
                 {
-                    var statesForNode = graphData.GetStatesForNode(nodeId);
+                    var statesForNode = GraphData.GetStatesForNode(nodeId);
                     foreach (var stateData in statesForNode)
                     {
                         if (stateViews.TryGetValue(stateData.Id, out var stateView))
@@ -300,12 +279,12 @@ namespace Junk.Yard.Editor
                 nodeView.RemoveFromHierarchy();
 
                 // Remove from graph data (this will also remove the state data)
-                if (graphData != null)
+                if (GraphData != null)
                 {
-                    var nodeData = graphData.GetNodeById(nodeId);
+                    var nodeData = GraphData.GetNodeById(nodeId);
                     if (nodeData != null)
                     {
-                        graphData.RemoveNode(nodeData);
+                        GraphData.RemoveNode(nodeData);
                     }
                 }
 
@@ -315,23 +294,20 @@ namespace Junk.Yard.Editor
 
         public void RemoveStateView(string stateId)
         {
-            if (stateViews.TryGetValue(stateId, out var stateView))
+            Assert.IsNotNull(GraphData);
+
+            if (!stateViews.TryGetValue(stateId, out var stateView))
+                return;
+            stateViews.Remove(stateId);
+            stateView.RemoveFromHierarchy();
+
+            var stateData = GraphData.GetStateById(stateId);
+            if (stateData != null)
             {
-                stateViews.Remove(stateId);
-                stateView.RemoveFromHierarchy();
-
-                // Remove from graph data
-                if (graphData != null)
-                {
-                    var stateData = graphData.GetStateById(stateId);
-                    if (stateData != null)
-                    {
-                        graphData.RemoveState(stateData);
-                    }
-                }
-
-                RefreshConnections();
+                GraphData.RemoveState(stateData);
             }
+
+            RefreshConnections();
         }
 
         public void RefreshConnections()
@@ -345,7 +321,7 @@ namespace Junk.Yard.Editor
             connectionViews.Clear();
 
             // Recreate connection views
-            var allConnections = graphData?.GetAllConnections() ?? new List<ConnectionData>();
+            var allConnections = GraphData?.GetAllConnections() ?? new List<ConnectionData>();
             foreach (var connectionData in allConnections)
             {
                 CreateConnectionView(connectionData);
@@ -478,10 +454,6 @@ namespace Junk.Yard.Editor
             return panOffset;
         }
 
-        public GraphData GetGraphData()
-        {
-            return graphData;
-        }
 
         public void SelectState(StateView stateView)
         {
@@ -583,7 +555,7 @@ namespace Junk.Yard.Editor
 
         private void PasteState(Vector2 position)
         {
-            if (copiedStateData == null || graphData == null) return;
+            if (copiedStateData == null || GraphData == null) return;
 
             var newState = new StateData(copiedStateData.Name + " Copy", position - panOffset, copiedStateData.ParentNodeId);
 
@@ -600,7 +572,7 @@ namespace Junk.Yard.Editor
                 newState.AddConnection(newConnection);
             }
 
-            graphData.AddState(newState);
+            GraphData.AddState(newState);
             CreateStateView(newState);
 
             // Update parent node size if assigned
@@ -618,7 +590,7 @@ namespace Junk.Yard.Editor
 
         private void PasteNode(Vector2 position)
         {
-            if (copiedNodeData == null || graphData == null) return;
+            if (copiedNodeData == null || GraphData == null) return;
 
             var newNode = new NodeData(copiedNodeData.Name + " Copy", position - panOffset);
             newNode.Size = copiedNodeData.Size;
@@ -636,11 +608,11 @@ namespace Junk.Yard.Editor
                 newNode.AddConnection(newConnection);
             }
 
-            graphData.AddNode(newNode);
+            GraphData.AddNode(newNode);
             CreateNodeView(newNode);
 
             // Copy states belonging to the node
-            var originalStates = graphData.GetStatesForNode(copiedNodeData.Id);
+            var originalStates = GraphData.GetStatesForNode(copiedNodeData.Id);
             foreach (var originalState in originalStates)
             {
                 var offset   = originalState.Position - copiedNodeData.Position;
@@ -659,7 +631,7 @@ namespace Junk.Yard.Editor
                     newState.AddConnection(newConnection);
                 }
 
-                graphData.AddState(newState);
+                GraphData.AddState(newState);
                 CreateStateView(newState);
             }
 
@@ -668,7 +640,7 @@ namespace Junk.Yard.Editor
 
         public void FrameAll()
         {
-            if (graphData == null) return;
+            if (GraphData == null) return;
 
             // Check if layout is valid
             if (layout.width <= 0 || layout.height <= 0)
@@ -708,22 +680,14 @@ namespace Junk.Yard.Editor
             UpdateAllPositions();
         }
 
-        public void RecalculateAllNodeSizes()
-        {
-            foreach (var nodeView in nodeViews.Values)
-            {
-                nodeView.UpdateSize();
-            }
-        }
-
         private void FixCorruptedData()
         {
-            if (graphData == null) return;
+            if (GraphData == null) return;
 
             // Fix corrupted node positions (including extremely large values)
-            for (int i = 0; i < graphData.Nodes.Count; i++)
+            for (int i = 0; i < GraphData.Nodes.Count; i++)
             {
-                var node = graphData.Nodes[i];
+                var node = GraphData.Nodes[i];
                 if (float.IsNaN(node.Position.x)       || float.IsNaN(node.Position.y) ||
                     Mathf.Abs(node.Position.x) > 10000 || Mathf.Abs(node.Position.y) > 10000)
                 {
@@ -741,7 +705,7 @@ namespace Junk.Yard.Editor
 
             // Fix corrupted state positions (including extremely large values)
             int stateIndex = 0;
-            foreach (var node in graphData.Nodes)
+            foreach (var node in GraphData.Nodes)
             {
                 foreach (var state in node.States)
                 {
@@ -761,16 +725,14 @@ namespace Junk.Yard.Editor
         private Rect CalculateContentBounds()
         {
             // Check if we have any nodes (states are now contained within nodes)
-            if (graphData == null || graphData.Nodes.Count == 0)
-            {
+            if (GraphData == null || GraphData.Nodes.Count == 0)
                 return new Rect(0, 0, 0, 0);
-            }
 
             float minX = float.MaxValue, minY = float.MaxValue;
             float maxX = float.MinValue, maxY = float.MinValue;
 
             // Include all nodes
-            foreach (var node in graphData.Nodes)
+            foreach (var node in GraphData.Nodes)
             {
                 minX = Mathf.Min(minX, node.Position.x);
                 minY = Mathf.Min(minY, node.Position.y);
@@ -779,7 +741,7 @@ namespace Junk.Yard.Editor
             }
 
             // Include all states from all nodes
-            foreach (var node in graphData.Nodes)
+            foreach (var node in GraphData.Nodes)
             {
                 foreach (var state in node.States)
                 {
@@ -806,16 +768,12 @@ namespace Junk.Yard.Editor
         private void UpdateAllPositions()
         {
             // Update all node positions
-            foreach (var nodeView in nodeViews.Values)
-            {
+            foreach (var nodeView in nodeViews.Values) 
                 nodeView.UpdatePosition();
-            }
 
             // Update all state positions
-            foreach (var stateView in stateViews.Values)
-            {
+            foreach (var stateView in stateViews.Values) 
                 stateView.UpdatePosition();
-            }
 
             // Update all connections
             UpdateConnections();

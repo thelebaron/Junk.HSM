@@ -4,101 +4,61 @@ using UnityEngine;
 
 namespace Junk.Yard.Editor
 {
-    [System.Serializable]
+    [Serializable]
     public class NodeData
     {
-        [SerializeField] private string               name;
-        [SerializeField] private string               id;
-        [SerializeField] private Vector2              position;
-        [SerializeField] private Vector2              size;
-        [SerializeField] private List<StateData>      states;
-        [SerializeField] private List<ConnectionData> outgoingConnections = new List<ConnectionData>();
-
-        public string Id
-        {
-            get => id;
-            set => id = value;
-        }
-
-        public string Name
-        {
-            get => name;
-            set => name = value;
-        }
-
-        public Vector2 Position
-        {
-            get => position;
-            set => position = value;
-        }
-
-        public Vector2 Size
-        {
-            get => size;
-            set => size = value;
-        }
-
-        public List<StateData> States
-        {
-            get => states;
-            set => states = value;
-        }
-
-        public List<ConnectionData> OutgoingConnections
-        {
-            get => outgoingConnections;
-            set => outgoingConnections = value;
-        }
-
+        public string               Name;
+        public string               Id;
+        public Vector2              Position;
+        public Vector2              Size;
+        public List<StateData>      States;
+        public List<ConnectionData> OutgoingConnections = new List<ConnectionData>();
+        
         public NodeData()
         {
-            id                  = Guid.NewGuid().ToString();
-            name                = "New Node";
-            position            = Vector2.zero;
-            size                = new Vector2(200, 100); // Smaller default size
-            states              = new List<StateData>();
-            outgoingConnections = new List<ConnectionData>();
+            Id                  = Guid.NewGuid().ToString();
+            Name                = "New Node";
+            Position            = Vector2.zero;
+            Size                = new Vector2(200, 100); // Smaller default size
+            States              = new List<StateData>();
+            OutgoingConnections = new List<ConnectionData>();
         }
 
         public NodeData(string nodeName, Vector2 nodePosition)
         {
-            id                  = Guid.NewGuid().ToString();
-            name                = nodeName;
-            position            = nodePosition;
-            size                = new Vector2(200, 100); // Smaller default size
-            states              = new List<StateData>();
-            outgoingConnections = new List<ConnectionData>();
+            Id                  = Guid.NewGuid().ToString();
+            Name                = nodeName;
+            Position            = nodePosition;
+            Size                = new Vector2(200, 100); // Smaller default size
+            States              = new List<StateData>();
+            OutgoingConnections = new List<ConnectionData>();
         }
 
         public void AddState(StateData state, GraphData graphData = null)
         {
-            if (state != null)
-            {
-                state.ParentNodeId = id;
-                states.Add(state);
-                RecalculateSize(graphData);
-            }
+            if (state == null) return;
+            state.ParentNodeId = Id;
+            States.Add(state);
+            RecalculateSize(graphData);
         }
 
         public void RemoveState(StateData state, GraphData graphData = null)
         {
-            if (state != null)
-            {
-                states.Remove(state);
-                RecalculateSize(graphData);
-            }
+            if (state == null) return;
+            States.Remove(state);
+            RecalculateSize(graphData);
         }
 
         public StateData GetStateById(string stateId)
         {
-            return states.Find(s => s.Id == stateId);
+            return States.Find(s => s.Id == stateId);
         }
 
         public void AddConnection(ConnectionData connection)
         {
-            if (connection != null && !outgoingConnections.Contains(connection))
+            if (connection != null && !OutgoingConnections.Contains(connection))
             {
-                outgoingConnections.Add(connection);
+                OutgoingConnections.Add(connection);
             }
         }
 
@@ -106,13 +66,13 @@ namespace Junk.Yard.Editor
         {
             if (connection != null)
             {
-                outgoingConnections.Remove(connection);
+                OutgoingConnections.Remove(connection);
             }
         }
 
         public void RemoveConnectionById(string connectionId)
         {
-            outgoingConnections.RemoveAll(c => c.Id == connectionId);
+            OutgoingConnections.RemoveAll(c => c.Id == connectionId);
         }
 
         public void RecalculateSize(GraphData graphData = null)
@@ -125,9 +85,9 @@ namespace Junk.Yard.Editor
             const float minHeight   = 60f;
 
             // Use internal states list - no need for GraphData dependency
-            if (states.Count == 0)
+            if (States.Count == 0)
             {
-                size = new Vector2(minWidth, minHeight);
+                Size = new Vector2(minWidth, minHeight);
                 return;
             }
 
@@ -135,7 +95,7 @@ namespace Junk.Yard.Editor
             float minX = float.MaxValue, minY = float.MaxValue;
             float maxX = float.MinValue, maxY = float.MinValue;
 
-            foreach (var state in states)
+            foreach (var state in States)
             {
                 minX = Mathf.Min(minX, state.Position.x);
                 minY = Mathf.Min(minY, state.Position.y);
@@ -154,8 +114,8 @@ namespace Junk.Yard.Editor
             newHeight = Mathf.Max(newHeight, minHeight);
 
             // Update position and size
-            position = new Vector2(newNodeX, newNodeY);
-            size     = new Vector2(newWidth, newHeight);
+            Position = new Vector2(newNodeX, newNodeY);
+            Size     = new Vector2(newWidth, newHeight);
         }
     }
 }

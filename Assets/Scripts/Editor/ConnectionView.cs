@@ -154,7 +154,7 @@ namespace Junk.Yard.Editor
 
         private void CalculateConnectionPoints()
         {
-            var graphData = graphView.GetGraphData();
+            var graphData = graphView.GraphData;
             if (graphData == null)
             {
                 cachedSourcePoint = Vector2.zero;
@@ -217,7 +217,7 @@ namespace Junk.Yard.Editor
 
         private ConnectionPointCalculator.BoundingBox GetSourceBoundingBox(Vector2 panOffset)
         {
-            var graphData = graphView.GetGraphData();
+            var graphData = graphView.GraphData;
             if (graphData == null) return new ConnectionPointCalculator.BoundingBox();
 
             if (connectionData.IsNodeToNode() || connectionData.IsNodeToState())
@@ -244,7 +244,7 @@ namespace Junk.Yard.Editor
 
         private ConnectionPointCalculator.BoundingBox GetTargetBoundingBox(Vector2 panOffset)
         {
-            var graphData = graphView.GetGraphData();
+            var graphData = graphView.GraphData;
             if (graphData == null) return new ConnectionPointCalculator.BoundingBox();
 
             if (connectionData.IsNodeToNode() || connectionData.IsStateToNode())
