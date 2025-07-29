@@ -463,6 +463,20 @@ public class GraphEditorWindow : EditorWindow
                 UpdateStateInspector();
             }
 
+            // Update labels for all states that belong to this node
+            if (currentGraph != null)
+            {
+                var nodeStates = currentGraph.GetStatesForNode(selectedNode.Id);
+                foreach (var state in nodeStates)
+                {
+                    var stateView = graphView.GetStateView(state.Id);
+                    if (stateView != null)
+                    {
+                        stateView.UpdateLabel();
+                    }
+                }
+            }
+
             // Mark graph as dirty
             if (currentGraph != null)
             {
@@ -497,6 +511,13 @@ public class GraphEditorWindow : EditorWindow
         if (selectedDisplayName == "None")
         {
             selectedState.ParentNodeId = string.Empty;
+
+            // Update the state label to remove node prefix
+            var stateView = graphView.GetStateView(selectedState.Id);
+            if (stateView != null)
+            {
+                stateView.UpdateLabel();
+            }
         }
         else
         {
@@ -553,6 +574,7 @@ public class GraphEditorWindow : EditorWindow
                 if (stateView != null)
                 {
                     stateView.UpdatePosition();
+                    stateView.UpdateLabel(); // Update label to show new node prefix
                 }
 
                 var newNodeView = graphView.GetNodeView(newParentNode.Id);

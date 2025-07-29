@@ -152,6 +152,7 @@ public class NodeView : VisualElement
             textField.RegisterCallback<BlurEvent>((e) => {
                 nodeData.Name = textField.value;
                 titleLabel.text = nodeData.Name;
+                UpdateChildStateLabels();
                 textField.RemoveFromHierarchy();
             });
             
@@ -160,6 +161,7 @@ public class NodeView : VisualElement
                 {
                     nodeData.Name = textField.value;
                     titleLabel.text = nodeData.Name;
+                    UpdateChildStateLabels();
                     textField.RemoveFromHierarchy();
                 }
             });
@@ -200,6 +202,24 @@ public class NodeView : VisualElement
         if (titleLabel != null)
         {
             titleLabel.text = nodeData.Name;
+        }
+    }
+
+    private void UpdateChildStateLabels()
+    {
+        // Update labels for all states that belong to this node
+        var graphData = graphView.GetGraphData();
+        if (graphData != null)
+        {
+            var nodeStates = graphData.GetStatesForNode(nodeData.Id);
+            foreach (var state in nodeStates)
+            {
+                var stateView = graphView.GetStateView(state.Id);
+                if (stateView != null)
+                {
+                    stateView.UpdateLabel();
+                }
+            }
         }
     }
 }

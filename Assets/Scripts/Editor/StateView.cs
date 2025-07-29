@@ -34,7 +34,7 @@ public class StateView : VisualElement
         Add(connectionPoint);
 
         // Create state label
-        stateLabel = new Label(stateData.Name);
+        stateLabel = new Label(GetDisplayText());
         stateLabel.AddToClassList("state-label");
         Add(stateLabel);
 
@@ -126,30 +126,30 @@ public class StateView : VisualElement
         if (evt.clickCount == 2) // Double click to edit
         {
             var textField = new TextField();
-            textField.value = stateData.Name;
+            textField.value = stateData.Name; // Edit only the state name, not the display text
             textField.style.position = Position.Absolute;
             textField.style.left = stateLabel.layout.x;
             textField.style.top = stateLabel.layout.y;
             textField.style.width = stateLabel.layout.width;
-            
+
             Add(textField);
             textField.Focus();
-            
+
             textField.RegisterCallback<BlurEvent>((e) => {
                 stateData.Name = textField.value;
-                stateLabel.text = stateData.Name;
+                UpdateLabel(); // Use UpdateLabel to show the proper display format
                 textField.RemoveFromHierarchy();
             });
-            
+
             textField.RegisterCallback<KeyDownEvent>((e) => {
                 if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
                 {
                     stateData.Name = textField.value;
-                    stateLabel.text = stateData.Name;
+                    UpdateLabel(); // Use UpdateLabel to show the proper display format
                     textField.RemoveFromHierarchy();
                 }
             });
-            
+
             evt.StopPropagation();
         }
     }
@@ -188,7 +188,24 @@ public class StateView : VisualElement
     {
         if (stateLabel != null)
         {
-            stateLabel.text = stateData.Name;
+            // Get the display text with node prefix if the state has a parent node
+            stateLabel.text = GetDisplayText();
         }
+    }
+
+    private string GetDisplayText()
+    {
+        // If state has a parent node, show "nodeName : stateName"
+        if (!string.IsNullOrEmpty(stateData.ParentNodeId))
+        {
+            var parentNode = graphView.GetGraphData()?.GetNodeById(stateData.ParentNodeId);
+            if (parentNode != null)
+            {
+                return $"{parentNode.Name} : {stateData.Name}";
+            }
+        }
+
+        // If no parent node, just show the state name
+        return stateData.Name;
     }
 }
