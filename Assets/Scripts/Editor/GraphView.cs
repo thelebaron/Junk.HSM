@@ -17,6 +17,7 @@ public class GraphView : VisualElement
     private Vector2 lastContextMenuPosition;
     private StateData copiedStateData;
     private NodeData copiedNodeData;
+    
 
     // Connection creation state
     private bool isCreatingConnection = false;

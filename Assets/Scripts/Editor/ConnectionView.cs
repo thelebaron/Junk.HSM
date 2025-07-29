@@ -133,34 +133,20 @@ public class ConnectionView : VisualElement
         if (graphData == null) return Vector2.zero;
 
         var panOffset = graphView.GetPanOffset();
+        var allConnections = graphData.GetAllConnections();
 
-        if (connectionData.IsNodeToNode() || connectionData.IsNodeToState())
-        {
-            // Connection from entire node
-            var sourceNode = graphData.GetNodeById(connectionData.SourceNodeId);
-            if (sourceNode == null) return Vector2.zero;
+        // Get source and target bounding boxes
+        var sourceBounds = GetSourceBoundingBox(panOffset);
+        var targetBounds = GetTargetBoundingBox(panOffset);
 
-            return new Vector2(
-                sourceNode.Position.x + sourceNode.Size.x + panOffset.x,
-                sourceNode.Position.y + sourceNode.Size.y * 0.5f + panOffset.y
-            );
-        }
-        else if (connectionData.IsStateToState() || connectionData.IsStateToNode())
-        {
-            // Connection from specific state
-            var sourceState = graphData.GetStateById(connectionData.SourceStateId);
-            if (sourceState == null) return Vector2.zero;
+        if (sourceBounds.size == Vector2.zero || targetBounds.size == Vector2.zero)
+            return Vector2.zero;
 
-            const float stateWidth = 100f;
-            const float stateHeight = 25f;
+        // Calculate dynamic connection points
+        var (sourcePoint, targetPoint) = ConnectionPointCalculator.CalculateConnectionPoints(
+            sourceBounds, targetBounds, connectionData, allConnections);
 
-            return new Vector2(
-                sourceState.Position.x + stateWidth + panOffset.x,
-                sourceState.Position.y + stateHeight * 0.5f + panOffset.y
-            );
-        }
-
-        return Vector2.zero;
+        return sourcePoint;
     }
 
     private Vector2 GetTargetPosition()
@@ -169,33 +155,74 @@ public class ConnectionView : VisualElement
         if (graphData == null) return Vector2.zero;
 
         var panOffset = graphView.GetPanOffset();
+        var allConnections = graphData.GetAllConnections();
+
+        // Get source and target bounding boxes
+        var sourceBounds = GetSourceBoundingBox(panOffset);
+        var targetBounds = GetTargetBoundingBox(panOffset);
+
+        if (sourceBounds.size == Vector2.zero || targetBounds.size == Vector2.zero)
+            return Vector2.zero;
+
+        // Calculate dynamic connection points
+        var (sourcePoint, targetPoint) = ConnectionPointCalculator.CalculateConnectionPoints(
+            sourceBounds, targetBounds, connectionData, allConnections);
+
+        return targetPoint;
+    }
+
+    private ConnectionPointCalculator.BoundingBox GetSourceBoundingBox(Vector2 panOffset)
+    {
+        var graphData = graphView.GetGraphData();
+        if (graphData == null) return new ConnectionPointCalculator.BoundingBox();
+
+        if (connectionData.IsNodeToNode() || connectionData.IsNodeToState())
+        {
+            // Connection from entire node
+            var sourceNode = graphData.GetNodeById(connectionData.SourceNodeId);
+            if (sourceNode == null) return new ConnectionPointCalculator.BoundingBox();
+
+            return ConnectionPointCalculator.GetNodeBoundingBox(sourceNode, panOffset);
+        }
+        else if (connectionData.IsStateToState() || connectionData.IsStateToNode())
+        {
+            // Connection from specific state
+            var sourceState = graphData.GetStateById(connectionData.SourceStateId);
+            if (sourceState == null) return new ConnectionPointCalculator.BoundingBox();
+
+            // Get the actual StateView for accurate sizing
+            var sourceStateView = graphView.GetStateView(connectionData.SourceStateId);
+            return ConnectionPointCalculator.GetStateBoundingBox(sourceState, panOffset, sourceStateView);
+        }
+
+        return new ConnectionPointCalculator.BoundingBox();
+    }
+
+    private ConnectionPointCalculator.BoundingBox GetTargetBoundingBox(Vector2 panOffset)
+    {
+        var graphData = graphView.GetGraphData();
+        if (graphData == null) return new ConnectionPointCalculator.BoundingBox();
 
         if (connectionData.IsNodeToNode() || connectionData.IsStateToNode())
         {
             // Connection to entire node
             var targetNode = graphData.GetNodeById(connectionData.TargetNodeId);
-            if (targetNode == null) return Vector2.zero;
+            if (targetNode == null) return new ConnectionPointCalculator.BoundingBox();
 
-            return new Vector2(
-                targetNode.Position.x + panOffset.x,
-                targetNode.Position.y + targetNode.Size.y * 0.5f + panOffset.y
-            );
+            return ConnectionPointCalculator.GetNodeBoundingBox(targetNode, panOffset);
         }
         else if (connectionData.IsStateToState() || connectionData.IsNodeToState())
         {
             // Connection to specific state
             var targetState = graphData.GetStateById(connectionData.TargetStateId);
-            if (targetState == null) return Vector2.zero;
+            if (targetState == null) return new ConnectionPointCalculator.BoundingBox();
 
-            const float stateHeight = 25f;
-
-            return new Vector2(
-                targetState.Position.x + panOffset.x,
-                targetState.Position.y + stateHeight * 0.5f + panOffset.y
-            );
+            // Get the actual StateView for accurate sizing
+            var targetStateView = graphView.GetStateView(connectionData.TargetStateId);
+            return ConnectionPointCalculator.GetStateBoundingBox(targetState, panOffset, targetStateView);
         }
 
-        return Vector2.zero;
+        return new ConnectionPointCalculator.BoundingBox();
     }
 
     public void UpdateConnection()

@@ -80,35 +80,47 @@ MonoBehaviour:
     outgoingConnections: []
   - name: relaxed
     id: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
-    position: {x: -536, y: -369}
-    size: {x: 470.96478, y: 184.17633}
+    position: {x: -596.07043, y: -449.9286}
+    size: {x: 465, y: 258.75}
     states:
-    - name: New State
-      id: 2f2c66fe-a814-4a38-b20f-54d2a5731a47
-      position: {x: -238.5, y: -318.25}
+    - name: into
+      id: 36085a0b-bdf9-449c-b840-e9ee7a7ee2dc
+      position: {x: -576.07043, y: -399.9286}
       parentNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
       outgoingConnections:
-      - id: d8f99048-4b8f-4d55-b0ab-85e9841bf950
-        sourceStateId: 2f2c66fe-a814-4a38-b20f-54d2a5731a47
-        targetStateId: db7b0249-0f9c-4943-a9b5-0bdb7581010a
+      - id: 2839c298-24db-42dd-bee8-5adc2cb55d05
+        sourceStateId: 36085a0b-bdf9-449c-b840-e9ee7a7ee2dc
+        targetStateId: a32d54a5-6d20-41c5-b811-b1189ba2dbd2
         sourceNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
         targetNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
         isNodeToNodeConnection: 0
-    - name: New State
-      id: db7b0249-0f9c-4943-a9b5-0bdb7581010a
-      position: {x: -1, y: -327}
-      parentNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
-      outgoingConnections: []
     - name: loop
-      id: d1cb7032-df27-4882-a7ed-b107d9cc6a32
-      position: {x: -185.03522, y: -318.41183}
+      id: a32d54a5-6d20-41c5-b811-b1189ba2dbd2
+      position: {x: -251.07043, y: -341.6786}
       parentNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
       outgoingConnections:
-      - id: 6d86278b-cb4d-42f4-8838-e70d08c6cce5
-        sourceStateId: d1cb7032-df27-4882-a7ed-b107d9cc6a32
-        targetStateId: db7b0249-0f9c-4943-a9b5-0bdb7581010a
+      - id: 2ab50440-ad65-4ba9-a0e8-af40af0dcad6
+        sourceStateId: a32d54a5-6d20-41c5-b811-b1189ba2dbd2
+        targetStateId: 5c79d403-975b-44e3-b114-c3834793bd86
         sourceNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
         targetNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
+        isNodeToNodeConnection: 0
+      - id: 82bb8840-2e0a-4271-88c5-5acdeed8ec2d
+        sourceStateId: a32d54a5-6d20-41c5-b811-b1189ba2dbd2
+        targetStateId: 36085a0b-bdf9-449c-b840-e9ee7a7ee2dc
+        sourceNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
+        targetNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
+        isNodeToNodeConnection: 0
+    - name: out
+      id: 5c79d403-975b-44e3-b114-c3834793bd86
+      position: {x: -369.57043, y: -236.17859}
+      parentNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
+      outgoingConnections:
+      - id: 540c5a75-a116-4bab-a25a-1adfa341ab58
+        sourceStateId: 5c79d403-975b-44e3-b114-c3834793bd86
+        targetStateId: c4071b93-e319-4e18-9b77-e7dbd70f7eb8
+        sourceNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
+        targetNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
         isNodeToNodeConnection: 0
     outgoingConnections:
     - id: 450ac4b6-1114-455a-bedd-67e6a1380caf
@@ -178,48 +190,42 @@ MonoBehaviour:
     position: {x: 18.57315, y: -45.4263}
     parentNodeId: 49bcbf5f-8306-42cc-829c-8e91ff35bcc5
     outgoingConnections: []
-  - name: into
-    id: 2f2c66fe-a814-4a38-b20f-54d2a5731a47
-    position: {x: -516, y: -319}
-    parentNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
-    outgoingConnections:
-    - id: d8f99048-4b8f-4d55-b0ab-85e9841bf950
-      sourceStateId: 2f2c66fe-a814-4a38-b20f-54d2a5731a47
-      targetStateId: db7b0249-0f9c-4943-a9b5-0bdb7581010a
-      sourceNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
-      targetNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
-      isNodeToNodeConnection: 0
-    - id: 219be7d4-12be-44d6-ad49-f0ac6f8edb19
-      sourceStateId: 2f2c66fe-a814-4a38-b20f-54d2a5731a47
-      targetStateId: d1cb7032-df27-4882-a7ed-b107d9cc6a32
-      sourceNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
-      targetNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
-      isNodeToNodeConnection: 0
-  - name: exit
-    id: db7b0249-0f9c-4943-a9b5-0bdb7581010a
-    position: {x: -320.4751, y: -229.82367}
-    parentNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
-    outgoingConnections:
-    - id: bca5eee8-7e4f-4f42-a99d-6ed544b5111d
-      sourceStateId: db7b0249-0f9c-4943-a9b5-0bdb7581010a
-      targetStateId: d1cb7032-df27-4882-a7ed-b107d9cc6a32
-      sourceNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
-      targetNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
-      isNodeToNodeConnection: 0
-    - id: c6ca9233-9c92-442c-8b2d-6b4838e4402b
-      sourceStateId: db7b0249-0f9c-4943-a9b5-0bdb7581010a
-      targetStateId: 2f2c66fe-a814-4a38-b20f-54d2a5731a47
-      sourceNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
-      targetNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
-      isNodeToNodeConnection: 0
   - name: loop
-    id: d1cb7032-df27-4882-a7ed-b107d9cc6a32
-    position: {x: -185.03522, y: -318.41183}
+    id: a32d54a5-6d20-41c5-b811-b1189ba2dbd2
+    position: {x: -251.07043, y: -341.6786}
     parentNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
     outgoingConnections:
-    - id: 6d86278b-cb4d-42f4-8838-e70d08c6cce5
-      sourceStateId: d1cb7032-df27-4882-a7ed-b107d9cc6a32
-      targetStateId: db7b0249-0f9c-4943-a9b5-0bdb7581010a
+    - id: 2ab50440-ad65-4ba9-a0e8-af40af0dcad6
+      sourceStateId: a32d54a5-6d20-41c5-b811-b1189ba2dbd2
+      targetStateId: 5c79d403-975b-44e3-b114-c3834793bd86
+      sourceNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
+      targetNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
+      isNodeToNodeConnection: 0
+    - id: 82bb8840-2e0a-4271-88c5-5acdeed8ec2d
+      sourceStateId: a32d54a5-6d20-41c5-b811-b1189ba2dbd2
+      targetStateId: 36085a0b-bdf9-449c-b840-e9ee7a7ee2dc
+      sourceNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
+      targetNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
+      isNodeToNodeConnection: 0
+  - name: out
+    id: 5c79d403-975b-44e3-b114-c3834793bd86
+    position: {x: -369.57043, y: -236.17859}
+    parentNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
+    outgoingConnections:
+    - id: 540c5a75-a116-4bab-a25a-1adfa341ab58
+      sourceStateId: 5c79d403-975b-44e3-b114-c3834793bd86
+      targetStateId: c4071b93-e319-4e18-9b77-e7dbd70f7eb8
+      sourceNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
+      targetNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
+      isNodeToNodeConnection: 0
+  - name: into
+    id: 36085a0b-bdf9-449c-b840-e9ee7a7ee2dc
+    position: {x: -576.07043, y: -399.9286}
+    parentNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
+    outgoingConnections:
+    - id: 2839c298-24db-42dd-bee8-5adc2cb55d05
+      sourceStateId: 36085a0b-bdf9-449c-b840-e9ee7a7ee2dc
+      targetStateId: a32d54a5-6d20-41c5-b811-b1189ba2dbd2
       sourceNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
       targetNodeId: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
       isNodeToNodeConnection: 0
