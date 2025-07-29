@@ -117,6 +117,8 @@ public class GraphView : VisualElement
         evt.menu.AppendAction("Create Node", (a) => CreateNode(lastContextMenuPosition));
         evt.menu.AppendAction("Create State", (a) => CreateState(lastContextMenuPosition));
         evt.menu.AppendSeparator();
+        evt.menu.AppendAction("Recalculate All Node Sizes", (a) => RecalculateAllNodeSizes());
+        evt.menu.AppendSeparator();
 
         if (selectedStateView != null)
         {
@@ -557,6 +559,14 @@ public class GraphView : VisualElement
 
         // Update all positions
         UpdateAllPositions();
+    }
+
+    public void RecalculateAllNodeSizes()
+    {
+        foreach (var nodeView in nodeViews.Values)
+        {
+            nodeView.UpdateSize();
+        }
     }
 
     private void FixCorruptedData()

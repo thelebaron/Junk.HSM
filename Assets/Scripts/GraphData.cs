@@ -63,7 +63,7 @@ public class GraphData : ScriptableObject
             if (parentNode != null && !parentNode.States.Contains(state))
             {
                 parentNode.States.Add(state);
-                parentNode.RecalculateSize();
+                parentNode.RecalculateSize(this);
             }
         }
     }
@@ -79,7 +79,7 @@ public class GraphData : ScriptableObject
             var parentNode = GetNodeById(state.ParentNodeId);
             if (parentNode != null)
             {
-                parentNode.RemoveState(state);
+                parentNode.RemoveState(state, this);
             }
 
             // Remove all connections related to this state

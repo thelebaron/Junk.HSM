@@ -94,7 +94,7 @@ public class StateView : VisualElement
             stateData.Position += delta;
             UpdatePosition();
 
-            // Update parent node size if this state belongs to a node
+            // Update parent node size in real-time during dragging
             UpdateParentNodeSize();
 
             // Update connections

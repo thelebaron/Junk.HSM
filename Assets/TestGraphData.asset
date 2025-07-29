@@ -15,8 +15,8 @@ MonoBehaviour:
   nodes:
   - id: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
     name: freeze
-    position: {x: -257, y: -78}
-    size: {x: 538, y: 304}
+    position: {x: -481, y: -177}
+    size: {x: 444, y: 219}
     states:
     - id: c4071b93-e319-4e18-9b77-e7dbd70f7eb8
       name: 'freeze : into'
@@ -48,8 +48,8 @@ MonoBehaviour:
     outgoingConnections: []
   - id: 49bcbf5f-8306-42cc-829c-8e91ff35bcc5
     name: fire
-    position: {x: 373, y: -67}
-    size: {x: 306, y: 260}
+    position: {x: 141.5, y: -132}
+    size: {x: 290.5, y: 251}
     states:
     - id: 42557690-790f-4f2a-acc8-11926279e8f5
       name: 'fire : from'
@@ -72,10 +72,16 @@ MonoBehaviour:
       parentNodeId: 49bcbf5f-8306-42cc-829c-8e91ff35bcc5
       outgoingConnections: []
     outgoingConnections: []
+  - id: 83301b05-dbd8-4708-95a9-b1f88ca63c8a
+    name: New Node
+    position: {x: 73, y: -221.5}
+    size: {x: 200, y: 60}
+    states: []
+    outgoingConnections: []
   states:
   - id: c4071b93-e319-4e18-9b77-e7dbd70f7eb8
     name: 'freeze : into'
-    position: {x: -218, y: -20}
+    position: {x: -461, y: -127}
     parentNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
     outgoingConnections:
     - id: dadb25cd-87fd-493b-82c9-fb337de5b1c0
@@ -86,7 +92,7 @@ MonoBehaviour:
       isNodeToNodeConnection: 0
   - id: f99ce659-8064-4da0-9342-adc3aa3380b6
     name: 'freeze : loop_freeze'
-    position: {x: -184, y: 178}
+    position: {x: -343, y: -3}
     parentNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
     outgoingConnections:
     - id: 011eca5a-a86c-4585-9a20-bc987322ae63
@@ -97,7 +103,7 @@ MonoBehaviour:
       isNodeToNodeConnection: 0
   - id: a9d39048-cd93-44fe-84b3-39d56a0256e6
     name: 'freeze : to_idle'
-    position: {x: -14, y: -3}
+    position: {x: -157, y: -100}
     parentNodeId: d3dbb21d-eeba-4a61-940a-2eeecd686e4f
     outgoingConnections:
     - id: 7b8887d7-5cd0-41b1-959b-59b2088c6004
@@ -114,16 +120,16 @@ MonoBehaviour:
       isNodeToNodeConnection: 0
   - id: 42557690-790f-4f2a-acc8-11926279e8f5
     name: 'fire : from'
-    position: {x: 475.5, y: 48.5}
+    position: {x: 161.5, y: -20.5}
     parentNodeId: 49bcbf5f-8306-42cc-829c-8e91ff35bcc5
     outgoingConnections: []
   - id: e6597ec5-1db6-458d-a14b-4eefc16f73a5
     name: 'fire : loop_fire'
-    position: {x: 471, y: 110}
+    position: {x: 213, y: -82}
     parentNodeId: 49bcbf5f-8306-42cc-829c-8e91ff35bcc5
     outgoingConnections: []
   - id: fb487c8a-cef9-4283-b148-f23fe2f795da
     name: 'fire : exit'
-    position: {x: 465, y: -4}
+    position: {x: 312, y: 74}
     parentNodeId: 49bcbf5f-8306-42cc-829c-8e91ff35bcc5
     outgoingConnections: []

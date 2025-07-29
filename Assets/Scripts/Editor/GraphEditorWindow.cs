@@ -19,6 +19,7 @@ public class GraphEditorWindow : EditorWindow
     private TextField nodeNameField;
     private VisualElement stateInspector;
     private VisualElement nodeInspector;
+    private bool isConnectionDropdownOpen = false;
 
     [MenuItem("Window/Graph Editor")]
     public static GraphEditorWindow ShowWindow()
@@ -229,6 +230,7 @@ public class GraphEditorWindow : EditorWindow
     {
         selectedState = state;
         selectedNode = null; // Clear node selection
+        isConnectionDropdownOpen = false; // Reset dropdown state
 
         if (state != null)
         {
@@ -245,6 +247,7 @@ public class GraphEditorWindow : EditorWindow
     {
         selectedNode = node;
         selectedState = null; // Clear state selection
+        isConnectionDropdownOpen = false; // Reset dropdown state
 
         if (node != null)
         {
@@ -331,11 +334,18 @@ public class GraphEditorWindow : EditorWindow
     {
         if (selectedState == null) return;
 
-        // Remove existing connection displays
+        // Remove existing connection displays and any open dropdown
         var existingConnections = stateInspector.Query<Button>().Where(b => b.name == "connection-button").ToList();
         foreach (var button in existingConnections)
         {
             button.RemoveFromHierarchy();
+        }
+
+        var existingDropdown = stateInspector.Q<DropdownField>("connection-dropdown");
+        if (existingDropdown != null)
+        {
+            existingDropdown.RemoveFromHierarchy();
+            isConnectionDropdownOpen = false;
         }
 
         // Add current connections
@@ -437,7 +447,7 @@ public class GraphEditorWindow : EditorWindow
             var oldParentNode = currentGraph.GetNodeById(selectedState.ParentNodeId);
             if (oldParentNode != null)
             {
-                oldParentNode.RemoveState(selectedState);
+                oldParentNode.RemoveState(selectedState, currentGraph);
 
                 var oldNodeView = graphView.GetNodeView(oldParentNode.Id);
                 if (oldNodeView != null)
@@ -494,7 +504,7 @@ public class GraphEditorWindow : EditorWindow
             if (newParentNode != null)
             {
                 selectedState.ParentNodeId = newParentNode.Id;
-                newParentNode.AddState(selectedState);
+                newParentNode.AddState(selectedState, currentGraph);
 
                 // Position state in front of the node
                 var nodeCenter = new Vector2(
@@ -526,7 +536,9 @@ public class GraphEditorWindow : EditorWindow
 
     private void ShowConnectionDropdownInInspector()
     {
-        if (selectedState == null || currentGraph == null) return;
+        if (selectedState == null || currentGraph == null || isConnectionDropdownOpen) return;
+
+        isConnectionDropdownOpen = true;
 
         // Create dropdown choices (same logic as in StateView)
         var choices = new List<string>();
@@ -595,6 +607,7 @@ public class GraphEditorWindow : EditorWindow
 
         // Create temporary dropdown
         var dropdown = new DropdownField("Select target:", choices, 0);
+        dropdown.name = "connection-dropdown"; // Add name for identification
         stateInspector.Add(dropdown);
 
         dropdown.RegisterValueChangedCallback(evt =>
@@ -605,6 +618,7 @@ public class GraphEditorWindow : EditorWindow
                 CreateConnectionFromInspector(targetState);
             }
             dropdown.RemoveFromHierarchy();
+            isConnectionDropdownOpen = false;
             UpdateInspectorContent(); // Refresh to show new connection
         });
     }

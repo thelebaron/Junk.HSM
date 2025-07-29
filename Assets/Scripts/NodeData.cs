@@ -68,22 +68,22 @@ public class NodeData
         outgoingConnections = new List<ConnectionData>();
     }
 
-    public void AddState(StateData state)
+    public void AddState(StateData state, GraphData graphData = null)
     {
         if (state != null)
         {
             state.ParentNodeId = id;
             states.Add(state);
-            RecalculateSize();
+            RecalculateSize(graphData);
         }
     }
 
-    public void RemoveState(StateData state)
+    public void RemoveState(StateData state, GraphData graphData = null)
     {
         if (state != null)
         {
             states.Remove(state);
-            RecalculateSize();
+            RecalculateSize(graphData);
         }
     }
 
@@ -113,53 +113,52 @@ public class NodeData
         outgoingConnections.RemoveAll(c => c.Id == connectionId);
     }
 
-    public void RecalculateSize()
+    public void RecalculateSize(GraphData graphData = null)
     {
-        if (states.Count == 0)
+        const float stateWidth = 100f;
+        const float stateHeight = 25f;
+        const float padding = 20f;
+        const float titleHeight = 30f;
+        const float minWidth = 200f;
+        const float minHeight = 60f;
+
+        // Get states from GraphData if available, otherwise use internal list
+        var statesToUse = states;
+        if (graphData != null)
         {
-            size = new Vector2(200, 60); // Minimum size for empty node
+            statesToUse = graphData.GetStatesForNode(id);
+        }
+
+        if (statesToUse.Count == 0)
+        {
+            size = new Vector2(minWidth, minHeight);
             return;
         }
 
-        // Calculate bounds based on state positions relative to current node position
+        // Calculate bounds of all states in world space
         float minX = float.MaxValue, minY = float.MaxValue;
         float maxX = float.MinValue, maxY = float.MinValue;
 
-        foreach (var state in states)
+        foreach (var state in statesToUse)
         {
-            // Calculate relative positions from node position
-            var relativeX = state.Position.x - position.x;
-            var relativeY = state.Position.y - position.y;
-
-            minX = Mathf.Min(minX, relativeX);
-            minY = Mathf.Min(minY, relativeY);
-            maxX = Mathf.Max(maxX, relativeX + 100); // Assume state width of 100
-            maxY = Mathf.Max(maxY, relativeY + 25);  // Assume state height of 25
+            minX = Mathf.Min(minX, state.Position.x);
+            minY = Mathf.Min(minY, state.Position.y);
+            maxX = Mathf.Max(maxX, state.Position.x + stateWidth);
+            maxY = Mathf.Max(maxY, state.Position.y + stateHeight);
         }
 
-        // Calculate size to encompass all states with padding
-        const float padding = 20f;
-        const float titleHeight = 30f;
+        // Calculate the new node position and size to encompass all states
+        float newNodeX = minX - padding;
+        float newNodeY = minY - padding - titleHeight;
+        float newWidth = (maxX - minX) + (padding * 2);
+        float newHeight = (maxY - minY) + (padding * 2) + titleHeight;
 
-        // Ensure minimum bounds
-        minX = Mathf.Min(minX, 0);
-        minY = Mathf.Min(minY, titleHeight);
-        maxX = Mathf.Max(maxX, 200);
-        maxY = Mathf.Max(maxY, titleHeight + 30);
+        // Ensure minimum size
+        newWidth = Mathf.Max(newWidth, minWidth);
+        newHeight = Mathf.Max(newHeight, minHeight);
 
-        size = new Vector2(
-            Mathf.Max(200, maxX - minX + padding * 2),
-            Mathf.Max(60, maxY - minY + padding * 2)
-        );
-
-        // Adjust position if states extend beyond the current node bounds
-        if (minX < 0)
-        {
-            position.x += minX - padding;
-        }
-        if (minY < titleHeight)
-        {
-            position.y += minY - titleHeight - padding;
-        }
+        // Update position and size
+        position = new Vector2(newNodeX, newNodeY);
+        size = new Vector2(newWidth, newHeight);
     }
 }

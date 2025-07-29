@@ -55,10 +55,24 @@ public class NodeView : VisualElement
 
     public void UpdateSize()
     {
-        nodeData.RecalculateSize();
+        var oldPosition = nodeData.Position;
+
+        // Pass GraphData to ensure we get the most up-to-date state information
+        var graphData = graphView.GetGraphData();
+        nodeData.RecalculateSize(graphData);
+
+        // Update visual size
         style.width = nodeData.Size.x;
         style.height = nodeData.Size.y;
-        UpdatePosition(); // Update position in case it changed during recalculation
+
+        // Update position since it may have changed during recalculation
+        UpdatePosition();
+
+        // If the node position changed, we need to update connections
+        if (oldPosition != nodeData.Position)
+        {
+            graphView.UpdateConnections();
+        }
     }
 
     private void OnMouseDown(MouseDownEvent evt)
@@ -155,7 +169,22 @@ public class NodeView : VisualElement
 
     private void BuildContextualMenu(ContextualMenuPopulateEvent evt)
     {
+        evt.menu.AppendAction("Resize", (a) => ResizeToFitStates());
+        evt.menu.AppendSeparator();
         evt.menu.AppendAction("Delete Node", (a) => DeleteNode());
+    }
+
+    private void ResizeToFitStates()
+    {
+        // Force recalculation of size based on current states
+        var graphData = graphView.GetGraphData();
+        nodeData.RecalculateSize(graphData);
+
+        // Update the visual representation
+        UpdateSize();
+
+        // Update connections since the node size changed
+        graphView.UpdateConnections();
     }
 
     private void DeleteNode()
