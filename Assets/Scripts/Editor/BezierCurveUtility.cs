@@ -65,7 +65,8 @@ public static class BezierCurveUtility
     }
 
     /// <summary>
-    /// Calculates control points based on connection edge directions.
+    /// Calculates control points that prioritize geometric correctness and natural flow.
+    /// Uses connection vector as primary guide, with edge directions as constraints for entry/exit angles.
     /// </summary>
     /// <param name="startPoint">Starting position</param>
     /// <param name="endPoint">Ending position</param>
@@ -76,11 +77,91 @@ public static class BezierCurveUtility
     public static (Vector2, Vector2) CalculateControlPoints(Vector2 startPoint, Vector2 endPoint,
         ConnectionPointCalculator.Edge sourceEdge, ConnectionPointCalculator.Edge targetEdge, float curveStrength = 100f)
     {
-        // Get direction vectors from the edges
-        Vector2 startDirection = ConnectionPointCalculator.GetDirectionFromEdge(sourceEdge);
-        Vector2 endDirection = -ConnectionPointCalculator.GetDirectionFromEdge(targetEdge); // Negative because we want direction INTO the target
+        float distance = Vector2.Distance(startPoint, endPoint);
+        float baseStrength = Mathf.Min(curveStrength, distance * 0.4f);
 
-        return CalculateControlPointsWithDirection(startPoint, endPoint, startDirection, endDirection, curveStrength);
+        // Primary connection vector - this is our desired flow direction
+        Vector2 connectionVector = endPoint - startPoint;
+        Vector2 connectionDirection = connectionVector.normalized;
+
+        // Get edge directions
+        Vector2 sourceEdgeDirection = ConnectionPointCalculator.GetDirectionFromEdge(sourceEdge);
+        Vector2 targetEdgeDirection = ConnectionPointCalculator.GetDirectionFromEdge(targetEdge);
+
+        // Calculate source control point direction
+        Vector2 sourceControlDirection = CalculateSourceControlDirection(connectionDirection, sourceEdgeDirection, sourceEdge);
+
+        // Calculate target control point direction
+        Vector2 targetControlDirection = CalculateTargetControlDirection(connectionDirection, targetEdgeDirection, targetEdge);
+
+        // Position control points
+        Vector2 controlPoint1 = startPoint + sourceControlDirection * baseStrength;
+        Vector2 controlPoint2 = endPoint + targetControlDirection * baseStrength;
+
+        return (controlPoint1, controlPoint2);
+    }
+
+    /// <summary>
+    /// Calculates the optimal direction for the source control point.
+    /// Prioritizes geometric flow while respecting edge constraints.
+    /// </summary>
+    private static Vector2 CalculateSourceControlDirection(Vector2 connectionDirection, Vector2 edgeDirection, ConnectionPointCalculator.Edge edge)
+    {
+        // Check if edge direction would cause flow away from target
+        float alignment = Vector2.Dot(edgeDirection, connectionDirection);
+
+        if (alignment > 0.3f)
+        {
+            // Edge direction is reasonably aligned with connection - use it
+            return edgeDirection;
+        }
+        else
+        {
+            // Edge direction would cause poor flow - calculate better direction
+            // For horizontal edges, prefer horizontal component of connection
+            // For vertical edges, prefer vertical component of connection
+            if (edge == ConnectionPointCalculator.Edge.Left || edge == ConnectionPointCalculator.Edge.Right)
+            {
+                // Horizontal edge - use horizontal component of connection, but respect edge constraint
+                float horizontalComponent = connectionDirection.x;
+                if ((edge == ConnectionPointCalculator.Edge.Right && horizontalComponent > 0) ||
+                    (edge == ConnectionPointCalculator.Edge.Left && horizontalComponent < 0))
+                {
+                    return new Vector2(horizontalComponent, connectionDirection.y * 0.3f).normalized;
+                }
+                else
+                {
+                    // Connection goes opposite to edge - use pure connection direction
+                    return connectionDirection;
+                }
+            }
+            else
+            {
+                // Vertical edge - use vertical component of connection, but respect edge constraint
+                float verticalComponent = connectionDirection.y;
+                if ((edge == ConnectionPointCalculator.Edge.Bottom && verticalComponent > 0) ||
+                    (edge == ConnectionPointCalculator.Edge.Top && verticalComponent < 0))
+                {
+                    return new Vector2(connectionDirection.x * 0.3f, verticalComponent).normalized;
+                }
+                else
+                {
+                    // Connection goes opposite to edge - use pure connection direction
+                    return connectionDirection;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Calculates the optimal direction for the target control point.
+    /// Creates smooth approach to target edge.
+    /// </summary>
+    private static Vector2 CalculateTargetControlDirection(Vector2 connectionDirection, Vector2 edgeDirection, ConnectionPointCalculator.Edge edge)
+    {
+        // For target, we want to approach from the connection direction
+        // The control point should be positioned to create smooth entry into the target edge
+        return -connectionDirection * 0.8f + edgeDirection * 0.2f;
     }
 
     /// <summary>
