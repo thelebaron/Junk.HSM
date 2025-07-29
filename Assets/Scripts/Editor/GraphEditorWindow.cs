@@ -179,18 +179,42 @@ public class GraphEditorWindow : EditorWindow
         nodeDropdown.RegisterValueChangedCallback(OnNodeSelectionChanged);
         stateInspector.Add(nodeDropdown);
 
-        // Connection management section
+        // Connection management section with add button
+        var connectionsContainer = new VisualElement();
+        connectionsContainer.style.flexDirection = FlexDirection.Row;
+        connectionsContainer.style.alignItems = Align.Center;
+        connectionsContainer.style.marginTop = 10;
+        connectionsContainer.style.marginBottom = 5;
+
         var connectionsLabel = new Label("Connections");
         connectionsLabel.style.fontSize = 12;
         connectionsLabel.style.color = Color.white;
-        connectionsLabel.style.marginTop = 10;
-        connectionsLabel.style.marginBottom = 5;
         connectionsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-        stateInspector.Add(connectionsLabel);
+        connectionsLabel.style.flexGrow = 1;
 
-        var connectButton = new Button(() => ShowConnectionDropdownInInspector()) { text = "Add Connection" };
-        connectButton.style.marginBottom = 5;
-        stateInspector.Add(connectButton);
+        // Create compact add button aligned with connections label
+        var connectButton = new Button(() => ShowConnectionDropdownInInspector()) { text = "+" };
+        connectButton.style.width             = 16;
+        connectButton.style.height            = 16;
+        connectButton.style.fontSize          = 12;
+        connectButton.style.backgroundColor   = Color.clear;
+        connectButton.style.borderTopWidth    = 0;
+        connectButton.style.borderBottomWidth = 0;
+        connectButton.style.borderLeftWidth   = 0;
+        connectButton.style.borderRightWidth  = 0;
+        connectButton.style.color             = new Color(1f, 1f, 1f, 1f);
+
+        // Add hover effect
+        connectButton.RegisterCallback<MouseEnterEvent>(evt => {
+            connectButton.style.backgroundColor = new Color(0.6f, 0.6f, 0.6f, 0.5f);
+        });
+        connectButton.RegisterCallback<MouseLeaveEvent>(evt => {
+            connectButton.style.backgroundColor = Color.clear;
+        });
+
+        connectionsContainer.Add(connectionsLabel);
+        connectionsContainer.Add(connectButton);
+        stateInspector.Add(connectionsContainer);
 
         inspectorPanel.Add(stateInspector);
 
@@ -203,18 +227,42 @@ public class GraphEditorWindow : EditorWindow
         nodeNameField.RegisterValueChangedCallback(OnNodeNameChanged);
         nodeInspector.Add(nodeNameField);
 
-        // Node connection management section
+        // Node connection management section with add button
+        var nodeConnectionsContainer = new VisualElement();
+        nodeConnectionsContainer.style.flexDirection = FlexDirection.Row;
+        nodeConnectionsContainer.style.alignItems = Align.Center;
+        nodeConnectionsContainer.style.marginTop = 10;
+        nodeConnectionsContainer.style.marginBottom = 5;
+
         var nodeConnectionsLabel = new Label("Connections");
         nodeConnectionsLabel.style.fontSize = 12;
         nodeConnectionsLabel.style.color = Color.white;
-        nodeConnectionsLabel.style.marginTop = 10;
-        nodeConnectionsLabel.style.marginBottom = 5;
         nodeConnectionsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-        nodeInspector.Add(nodeConnectionsLabel);
+        nodeConnectionsLabel.style.flexGrow = 1;
 
-        var nodeConnectButton = new Button(() => ShowNodeConnectionDropdownInInspector()) { text = "Add Connection" };
-        nodeConnectButton.style.marginBottom = 5;
-        nodeInspector.Add(nodeConnectButton);
+        // Create compact add button aligned with connections label
+        var nodeConnectButton = new Button(() => ShowNodeConnectionDropdownInInspector()) { text = "+" };
+        nodeConnectButton.style.width             = 16;
+        nodeConnectButton.style.height            = 16;
+        nodeConnectButton.style.fontSize          = 12;
+        nodeConnectButton.style.backgroundColor   = Color.clear;
+        nodeConnectButton.style.borderTopWidth    = 0;
+        nodeConnectButton.style.borderBottomWidth = 0;
+        nodeConnectButton.style.borderLeftWidth   = 0;
+        nodeConnectButton.style.borderRightWidth  = 0;
+        nodeConnectButton.style.color             = new Color(1f, 1f, 1f, 1f);
+
+        // Add hover effect
+        nodeConnectButton.RegisterCallback<MouseEnterEvent>(evt => {
+            nodeConnectButton.style.backgroundColor = new Color(0.6f, 0.6f, 0.6f, 0.5f);
+        });
+        nodeConnectButton.RegisterCallback<MouseLeaveEvent>(evt => {
+            nodeConnectButton.style.backgroundColor = Color.clear;
+        });
+
+        nodeConnectionsContainer.Add(nodeConnectionsLabel);
+        nodeConnectionsContainer.Add(nodeConnectButton);
+        nodeInspector.Add(nodeConnectionsContainer);
 
         inspectorPanel.Add(nodeInspector);
 
@@ -352,10 +400,10 @@ public class GraphEditorWindow : EditorWindow
         if (selectedState == null) return;
 
         // Remove existing connection displays and any open dropdown
-        var existingConnections = stateInspector.Query<Button>().Where(b => b.name == "connection-button").ToList();
-        foreach (var button in existingConnections)
+        var existingConnections = stateInspector.Query<VisualElement>().Where(e => e.name == "connection-button").ToList();
+        foreach (var element in existingConnections)
         {
-            button.RemoveFromHierarchy();
+            element.RemoveFromHierarchy();
         }
 
         var existingDropdown = stateInspector.Q<DropdownField>("connection-dropdown");
@@ -369,25 +417,61 @@ public class GraphEditorWindow : EditorWindow
         foreach (var connection in selectedState.OutgoingConnections)
         {
             string targetName = "Unknown";
+            string connectionType = "";
+
             if (connection.IsStateToState())
             {
                 var targetState = currentGraph?.GetStateById(connection.TargetStateId);
                 targetName = targetState?.Name ?? "Unknown State";
+                connectionType = "State";
             }
             else if (connection.IsStateToNode())
             {
                 var targetNode = currentGraph?.GetNodeById(connection.TargetNodeId);
                 targetName = targetNode?.Name ?? "Unknown Node";
+                connectionType = "Node";
             }
 
-            var connectionButton = new Button(() => RemoveConnectionFromInspector(connection))
+            // Create container for connection entry
+            var connectionContainer = new VisualElement();
+            connectionContainer.style.flexDirection = FlexDirection.Row;
+            connectionContainer.style.alignItems = Align.Center;
+            connectionContainer.style.marginBottom = 2;
+            connectionContainer.name = "connection-button";
+
+            // Create indented label
+            var connectionLabel = new Label($"    → {connectionType}: {targetName}");
+            connectionLabel.style.flexGrow = 1;
+            connectionLabel.style.color = Color.white;
+            connectionLabel.style.fontSize = 11;
+            connectionLabel.style.marginLeft = 5;
+
+            // Create small delete button
+            var deleteButton = new Button(() => RemoveConnectionFromInspector(connection))
             {
-                text = $"→ {targetName} (Remove)",
-                name = "connection-button"
+                text = "−"
             };
-            connectionButton.style.marginBottom = 2;
-            connectionButton.style.backgroundColor = new Color(0.6f, 0.3f, 0.3f, 1f);
-            stateInspector.Add(connectionButton);
+            deleteButton.style.width             = 16;
+            deleteButton.style.height            = 16;
+            deleteButton.style.fontSize          = 12;
+            deleteButton.style.backgroundColor   = Color.clear;
+            deleteButton.style.borderTopWidth    = 0;
+            deleteButton.style.borderBottomWidth = 0;
+            deleteButton.style.borderLeftWidth   = 0;
+            deleteButton.style.borderRightWidth  = 0;
+            deleteButton.style.color             = new Color(1f, 1f, 1f, 1f);
+
+            // Add hover effect
+            deleteButton.RegisterCallback<MouseEnterEvent>(evt => {
+                deleteButton.style.backgroundColor = new Color(0.6f, 0.6f, 0.6f, 0.5f);
+            });
+            deleteButton.RegisterCallback<MouseLeaveEvent>(evt => {
+                deleteButton.style.backgroundColor = Color.clear;
+            });
+
+            connectionContainer.Add(connectionLabel);
+            connectionContainer.Add(deleteButton);
+            stateInspector.Add(connectionContainer);
         }
     }
 
@@ -835,35 +919,73 @@ public class GraphEditorWindow : EditorWindow
         if (selectedNode == null) return;
 
         // Remove existing connection displays
-        var existingConnections = nodeInspector.Query<Button>().Where(b => b.name == "node-connection-button").ToList();
-        foreach (var button in existingConnections)
+        var existingConnections = nodeInspector.Query<VisualElement>().Where(e => e.name == "node-connection-button").ToList();
+        foreach (var element in existingConnections)
         {
-            button.RemoveFromHierarchy();
+            element.RemoveFromHierarchy();
         }
 
         // Add current connections
         foreach (var connection in selectedNode.OutgoingConnections)
         {
             string targetName = "Unknown";
+            string connectionType = "";
+
             if (connection.IsNodeToNode())
             {
                 var targetNode = currentGraph?.GetNodeById(connection.TargetNodeId);
                 targetName = targetNode?.Name ?? "Unknown Node";
+                connectionType = "Node";
             }
             else if (connection.IsNodeToState())
             {
                 var targetState = currentGraph?.GetStateById(connection.TargetStateId);
                 targetName = targetState?.Name ?? "Unknown State";
+                connectionType = "State";
             }
 
-            var connectionButton = new Button(() => RemoveNodeConnectionFromInspector(connection))
+            // Create container for connection entry
+            var connectionContainer = new VisualElement();
+            connectionContainer.style.flexDirection = FlexDirection.Row;
+            connectionContainer.style.alignItems = Align.Center;
+            connectionContainer.style.marginBottom = 2;
+            connectionContainer.name = "node-connection-button";
+
+            // Create indented label
+            var connectionLabel = new Label($"    → {connectionType}: {targetName}");
+            connectionLabel.style.flexGrow = 1;
+            connectionLabel.style.color = Color.white;
+            connectionLabel.style.fontSize = 11;
+            connectionLabel.style.marginLeft = 5;
+
+            // Create small delete button
+            var deleteButton = new Button(() => RemoveNodeConnectionFromInspector(connection))
             {
-                text = $"→ {targetName} (Remove)",
-                name = "node-connection-button"
+                text = "−"
             };
-            connectionButton.style.marginBottom = 2;
-            connectionButton.style.backgroundColor = new Color(0.6f, 0.3f, 0.3f, 1f);
-            nodeInspector.Add(connectionButton);
+            deleteButton.style.width = 16;
+            deleteButton.style.height = 16;
+            deleteButton.style.fontSize = 12;
+            deleteButton.style.backgroundColor = Color.clear;
+            deleteButton.style.borderTopWidth = 0;
+            deleteButton.style.borderBottomWidth = 0;
+            deleteButton.style.borderLeftWidth = 0;
+            deleteButton.style.borderRightWidth = 0;
+            deleteButton.style.color = new Color(0.8f, 0.8f, 0.8f, 1f);
+
+            // Add hover effect
+            deleteButton.RegisterCallback<MouseEnterEvent>(evt => {
+                deleteButton.style.color = new Color(1f, 1f, 1f, 1f);
+                deleteButton.style.backgroundColor = new Color(0.3f, 0.3f, 0.3f, 0.5f);
+            });
+            deleteButton.RegisterCallback<MouseLeaveEvent>(evt => {
+                deleteButton.style.color = new Color(0.8f, 0.8f, 0.8f, 1f);
+                deleteButton.style.backgroundColor = Color.clear;
+            });
+
+            connectionContainer.Add(connectionLabel);
+            connectionContainer.Add(deleteButton);
+            nodeInspector.Add(connectionContainer);
         }
     }
 
