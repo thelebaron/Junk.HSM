@@ -52,41 +52,37 @@ public static class ConnectionPointCalculator
         // Find the closest edges between source and target
         var (sourceEdge, targetEdge) = FindClosestEdges(sourceBounds, targetBounds);
 
-        // Calculate base points on the edges
-        var sourceBasePoint = GetPointOnEdge(sourceBounds, sourceEdge, 0.5f);
-        var targetBasePoint = GetPointOnEdge(targetBounds, targetEdge, 0.5f);
-
-        // Apply simple spacing based on connection ID hash for now
-        var sourcePoint = ApplySimpleSpacing(sourceBasePoint, sourceBounds, sourceEdge, connectionData.Id);
-        var targetPoint = ApplySimpleSpacing(targetBasePoint, targetBounds, targetEdge, connectionData.Id);
+        // Apply spacing to prevent overlapping connections
+        var sourcePoint = ApplySpacing(sourceBounds, sourceEdge, connectionData, allConnections, true);
+        var targetPoint = ApplySpacing(targetBounds, targetEdge, connectionData, allConnections, false);
 
         return (sourcePoint, targetPoint);
     }
 
     /// <summary>
-    /// Apply simple spacing based on connection ID to make connections visible
+    /// Apply spacing to prevent overlapping connections
     /// </summary>
-    private static Vector2 ApplySimpleSpacing(Vector2 basePoint, BoundingBox bounds, Edge edge, string connectionId)
+    private static Vector2 ApplySpacing(BoundingBox bounds, Edge edge, ConnectionData currentConnection,
+        List<ConnectionData> allConnections, bool isSource)
     {
-        // Use connection ID hash to create consistent but different offsets
-        int hash = connectionId.GetHashCode();
+        // Create a unique hash that includes connection ID, source/target flag, and edge
+        // This ensures that source and target points for the same connection are different
+        string hashInput = currentConnection.Id + "_" + (isSource ? "src" : "tgt") + "_" + edge.ToString();
+        int hash = hashInput.GetHashCode();
 
-        // Ensure positive value and map to 0-1 range
-        float offset = Mathf.Abs(hash % 1000) / 1000.0f; // 0-1 range, always positive
+        // Use a more sophisticated distribution to avoid clustering
+        float offset = Mathf.Abs(hash % 10000) / 10000.0f;
 
-        // Map to a parameter along the edge (with some padding)
-        float parameter = 0.1f + (offset * 0.8f); // Use 10%-90% of the edge
-
-        // Clamp to ensure valid range
+        // Map to a range that avoids the very edges (0.15 to 0.85)
+        float parameter = 0.15f + (offset * 0.7f);
         parameter = Mathf.Clamp01(parameter);
 
         var result = GetPointOnEdge(bounds, edge, parameter);
 
-        // Debug logging to see what's happening
-        UnityEngine.Debug.Log($"Connection {connectionId}: hash={hash}, offset={offset}, parameter={parameter}, edge={edge}, result={result}");
-
         return result;
     }
+
+
 
     /// <summary>
     /// Get bounding box for a node
@@ -110,13 +106,11 @@ public static class ConnectionPointCalculator
         {
             // Use actual rendered size from the visual element
             stateSize = new Vector2(stateView.layout.width, stateView.layout.height);
-            UnityEngine.Debug.Log($"State {stateData.Name}: Using actual layout size {stateSize}");
         }
         else
         {
             // Fallback to estimated size based on text content and CSS styling
             stateSize = EstimateStateSize(stateData.Name);
-            UnityEngine.Debug.Log($"State {stateData.Name}: Using estimated size {stateSize} (layout not available)");
         }
 
         var bounds = new BoundingBox(
@@ -124,7 +118,6 @@ public static class ConnectionPointCalculator
             stateSize
         );
 
-        UnityEngine.Debug.Log($"State {stateData.Name}: Final bounds position={bounds.position}, size={bounds.size}");
         return bounds;
     }
 

@@ -6,6 +6,12 @@ public class ConnectionView : VisualElement
     private ConnectionData connectionData;
     private GraphView graphView;
 
+    // Cache for connection points to avoid duplicate calculations
+    private Vector2? cachedSourcePoint;
+    private Vector2? cachedTargetPoint;
+    private Vector2 lastPanOffset;
+    private bool cacheValid = false;
+
     public ConnectionData ConnectionData => connectionData;
 
     public ConnectionView(ConnectionData data, GraphView parent)
@@ -127,12 +133,25 @@ public class ConnectionView : VisualElement
         painter.Stroke();
     }
 
-    private Vector2 GetSourcePosition()
+    private void CalculateConnectionPoints()
     {
         var graphData = graphView.GetGraphData();
-        if (graphData == null) return Vector2.zero;
+        if (graphData == null)
+        {
+            cachedSourcePoint = Vector2.zero;
+            cachedTargetPoint = Vector2.zero;
+            cacheValid = true;
+            return;
+        }
 
         var panOffset = graphView.GetPanOffset();
+
+        // Check if cache is still valid (pan offset hasn't changed)
+        if (cacheValid && lastPanOffset == panOffset && cachedSourcePoint.HasValue && cachedTargetPoint.HasValue)
+        {
+            return; // Use cached values
+        }
+
         var allConnections = graphData.GetAllConnections();
 
         // Get source and target bounding boxes
@@ -140,35 +159,34 @@ public class ConnectionView : VisualElement
         var targetBounds = GetTargetBoundingBox(panOffset);
 
         if (sourceBounds.size == Vector2.zero || targetBounds.size == Vector2.zero)
-            return Vector2.zero;
+        {
+            cachedSourcePoint = Vector2.zero;
+            cachedTargetPoint = Vector2.zero;
+        }
+        else
+        {
+            // Calculate dynamic connection points once
+            var (sourcePoint, targetPoint) = ConnectionPointCalculator.CalculateConnectionPoints(
+                sourceBounds, targetBounds, connectionData, allConnections);
 
-        // Calculate dynamic connection points
-        var (sourcePoint, targetPoint) = ConnectionPointCalculator.CalculateConnectionPoints(
-            sourceBounds, targetBounds, connectionData, allConnections);
+            cachedSourcePoint = sourcePoint;
+            cachedTargetPoint = targetPoint;
+        }
 
-        return sourcePoint;
+        lastPanOffset = panOffset;
+        cacheValid = true;
+    }
+
+    private Vector2 GetSourcePosition()
+    {
+        CalculateConnectionPoints();
+        return cachedSourcePoint ?? Vector2.zero;
     }
 
     private Vector2 GetTargetPosition()
     {
-        var graphData = graphView.GetGraphData();
-        if (graphData == null) return Vector2.zero;
-
-        var panOffset = graphView.GetPanOffset();
-        var allConnections = graphData.GetAllConnections();
-
-        // Get source and target bounding boxes
-        var sourceBounds = GetSourceBoundingBox(panOffset);
-        var targetBounds = GetTargetBoundingBox(panOffset);
-
-        if (sourceBounds.size == Vector2.zero || targetBounds.size == Vector2.zero)
-            return Vector2.zero;
-
-        // Calculate dynamic connection points
-        var (sourcePoint, targetPoint) = ConnectionPointCalculator.CalculateConnectionPoints(
-            sourceBounds, targetBounds, connectionData, allConnections);
-
-        return targetPoint;
+        CalculateConnectionPoints();
+        return cachedTargetPoint ?? Vector2.zero;
     }
 
     private ConnectionPointCalculator.BoundingBox GetSourceBoundingBox(Vector2 panOffset)
@@ -227,7 +245,8 @@ public class ConnectionView : VisualElement
 
     public void UpdateConnection()
     {
-        // Force a redraw of the connection
+        // Invalidate cache and force a redraw of the connection
+        cacheValid = false;
         MarkDirtyRepaint();
     }
 }

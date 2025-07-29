@@ -21,12 +21,12 @@ public static class GraphTestDataCreator
 
         // Create states for freeze node (positioned relative to node)
         var freezeInto = new StateData("freeze : into", new Vector2(70, 90), freezeNode.Id);
-        var freezeLoop = new StateData("freeze : loop_freeze", new Vector2(70, 120), freezeNode.Id);
+        var freezeLoop = new StateData("freeze : loop", new Vector2(70, 120), freezeNode.Id);
         var freezeToIdle = new StateData("freeze : to_idle", new Vector2(170, 120), freezeNode.Id);
 
         // Create states for fire node (positioned relative to node)
         var fireFrom = new StateData("fire : from", new Vector2(370, 90), fireNode.Id);
-        var fireLoop = new StateData("fire : loop_fire", new Vector2(370, 120), fireNode.Id);
+        var fireLoop = new StateData("fire : loop", new Vector2(370, 120), fireNode.Id);
         var fireExit = new StateData("fire : exit", new Vector2(470, 120), fireNode.Id);
 
         // Add states to graph
@@ -61,7 +61,7 @@ public static class GraphTestDataCreator
         freezeToIdle.AddConnection(connection2);
         
         // Save the asset
-        var path = "Assets/TestGraphData.asset";
+        var path = "Assets/TestGraph.asset";
         AssetDatabase.CreateAsset(graphData, path);
         AssetDatabase.SaveAssets();
         
