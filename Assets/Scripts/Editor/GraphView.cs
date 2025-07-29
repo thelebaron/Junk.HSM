@@ -233,10 +233,25 @@ public class GraphView : VisualElement
     {
         if (nodeViews.TryGetValue(nodeId, out var nodeView))
         {
+            // First, remove all state views that belong to this node
+            if (graphData != null)
+            {
+                var statesForNode = graphData.GetStatesForNode(nodeId);
+                foreach (var stateData in statesForNode)
+                {
+                    if (stateViews.TryGetValue(stateData.Id, out var stateView))
+                    {
+                        stateViews.Remove(stateData.Id);
+                        stateView.RemoveFromHierarchy();
+                    }
+                }
+            }
+
+            // Remove the node view
             nodeViews.Remove(nodeId);
             nodeView.RemoveFromHierarchy();
 
-            // Remove from graph data
+            // Remove from graph data (this will also remove the state data)
             if (graphData != null)
             {
                 var nodeData = graphData.GetNodeById(nodeId);
