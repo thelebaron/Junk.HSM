@@ -7,7 +7,6 @@ public class StateView : VisualElement
     private StateData stateData;
     private GraphView graphView;
     private Label stateLabel;
-    private VisualElement connectionPoint;
     private bool isDragging = false;
     private Vector2 dragStartPosition;
     private bool isSelected = false;
@@ -28,11 +27,6 @@ public class StateView : VisualElement
         }
 
         AddToClassList("state");
-
-        // Create connection point (visual indicator for connections)
-        connectionPoint = new VisualElement();
-        connectionPoint.AddToClassList("connection-point");
-        Add(connectionPoint);
 
         // Create state label
         stateLabel = new Label(GetDisplayText());

@@ -54,11 +54,31 @@ public static class ConnectionPointCalculator
         // Find the closest edges between source and target
         var (sourceEdge, targetEdge) = FindClosestEdges(sourceBounds, targetBounds);
 
+        // Create a connection context that includes bounding box information for edge calculation
+        var connectionContext = new ConnectionContext
+        {
+            AllConnections = allConnections,
+            CurrentConnection = connectionData,
+            SourceBounds = sourceBounds,
+            TargetBounds = targetBounds
+        };
+
         // Apply spacing to prevent overlapping connections
-        var sourcePoint = ApplySpacing(sourceBounds, sourceEdge, connectionData, allConnections, true);
-        var targetPoint = ApplySpacing(targetBounds, targetEdge, connectionData, allConnections, false);
+        var sourcePoint = ApplySpacing(sourceBounds, sourceEdge, connectionContext, true);
+        var targetPoint = ApplySpacing(targetBounds, targetEdge, connectionContext, false);
 
         return (sourcePoint, targetPoint, sourceEdge, targetEdge);
+    }
+
+    /// <summary>
+    /// Context information for connection calculations
+    /// </summary>
+    private struct ConnectionContext
+    {
+        public List<ConnectionData> AllConnections;
+        public ConnectionData CurrentConnection;
+        public BoundingBox SourceBounds;
+        public BoundingBox TargetBounds;
     }
 
     /// <summary>
@@ -84,14 +104,36 @@ public static class ConnectionPointCalculator
     /// <summary>
     /// Apply spacing to prevent overlapping connections with ordered positioning to minimize crossings
     /// </summary>
-    private static Vector2 ApplySpacing(BoundingBox bounds, Edge edge, ConnectionData currentConnection,
-        List<ConnectionData> allConnections, bool isSource)
+    private static Vector2 ApplySpacing(BoundingBox bounds, Edge edge, ConnectionContext context, bool isSource)
     {
-        // Find all connections that share the same source and edge
-        var sameSourceConnections = GetConnectionsFromSameSourceAndEdge(currentConnection, allConnections, isSource, edge);
+        // Create a unique key for this source element and edge combination
+        string sourceElementId = GetSourceElementId(context.CurrentConnection, isSource);
+        bool sourceIsNode = IsSourceElementNode(context.CurrentConnection, isSource);
+        string sourceKey = $"{(sourceIsNode ? "node" : "state")}_{sourceElementId}_{edge}";
+
+        // Find all connections that share the same source element and edge
+        var sameSourceAndEdgeConnections = new List<ConnectionData>();
+
+        foreach (var connection in context.AllConnections)
+        {
+            string connectionSourceId = GetSourceElementId(connection, isSource);
+            bool connectionIsNode = IsSourceElementNode(connection, isSource);
+
+            if (connectionSourceId == sourceElementId && connectionIsNode == sourceIsNode)
+            {
+                // Calculate what edge this connection would use
+                var connectionEdge = CalculateConnectionEdge(connection, context, isSource);
+
+                // Only include if it uses the same edge
+                if (connectionEdge == edge)
+                {
+                    sameSourceAndEdgeConnections.Add(connection);
+                }
+            }
+        }
 
         // Sort them by target ID to create consistent ordering
-        sameSourceConnections.Sort((a, b) =>
+        sameSourceAndEdgeConnections.Sort((a, b) =>
         {
             string targetA = isSource ? GetTargetId(a) : GetSourceId(a);
             string targetB = isSource ? GetTargetId(b) : GetSourceId(b);
@@ -99,12 +141,12 @@ public static class ConnectionPointCalculator
         });
 
         // Find the index of current connection in sorted list
-        int connectionIndex = sameSourceConnections.FindIndex(c => c.Id == currentConnection.Id);
+        int connectionIndex = sameSourceAndEdgeConnections.FindIndex(c => c.Id == context.CurrentConnection.Id);
 
         // If not found, fall back to hash-based approach
         if (connectionIndex == -1)
         {
-            string hashInput = currentConnection.Id + "_" + (isSource ? "src" : "tgt") + "_" + edge.ToString();
+            string hashInput = context.CurrentConnection.Id + "_" + (isSource ? "src" : "tgt") + "_" + edge.ToString();
             int hash = hashInput.GetHashCode();
             float offset = Mathf.Abs(hash % 10000) / 10000.0f;
             float p = 0.15f + (offset * 0.7f);
@@ -113,60 +155,80 @@ public static class ConnectionPointCalculator
 
         // Calculate parameter based on sorted position
         float parameter;
-        if (sameSourceConnections.Count == 1)
+        if (sameSourceAndEdgeConnections.Count == 1)
         {
             parameter = 0.5f; // Center single connections
         }
         else
         {
             // Distribute evenly across the edge (0.15 to 0.85 range)
-            parameter = 0.15f + (connectionIndex / (float)(sameSourceConnections.Count - 1)) * 0.7f;
+            parameter = 0.15f + (connectionIndex / (float)(sameSourceAndEdgeConnections.Count - 1)) * 0.7f;
         }
 
         return GetPointOnEdge(bounds, edge, Mathf.Clamp01(parameter));
     }
 
     /// <summary>
-    /// Get all connections that originate from the same source and use the same edge
+    /// Calculate which edge a connection would use based on a simplified heuristic
     /// </summary>
-    private static List<ConnectionData> GetConnectionsFromSameSourceAndEdge(ConnectionData currentConnection,
-        List<ConnectionData> allConnections, bool isSource, Edge edge)
+    private static Edge CalculateConnectionEdge(ConnectionData connection, ConnectionContext context, bool isSource)
     {
-        var result = new List<ConnectionData>();
+        // For connections other than the current one, we use a simplified heuristic
+        // based on the connection IDs to determine likely edge usage
 
-        foreach (var connection in allConnections)
-        {
-            if (HasSameSource(currentConnection, connection, isSource))
-            {
-                result.Add(connection);
-            }
-        }
+        // Use a hash-based approach to consistently assign edges
+        string sourceId = GetSourceElementId(connection, isSource);
+        string targetId = isSource ? GetTargetId(connection) : GetSourceId(connection);
 
-        return result;
+        string hashInput = sourceId + "_to_" + targetId;
+        int hash = hashInput.GetHashCode();
+
+        // Use the hash to determine edge preference
+        int edgeIndex = Mathf.Abs(hash) % 4;
+        return (Edge)edgeIndex;
     }
 
+
+
     /// <summary>
-    /// Check if two connections have the same source
+    /// Get the source element ID for a connection (node or state ID)
     /// </summary>
-    private static bool HasSameSource(ConnectionData a, ConnectionData b, bool isSource)
+    private static string GetSourceElementId(ConnectionData connection, bool isSource)
     {
         if (isSource)
         {
-            // Check source matching
-            if (a.IsNodeToNode() || a.IsNodeToState())
-                return a.SourceNodeId == b.SourceNodeId;
+            // Getting source element
+            if (connection.IsNodeToNode() || connection.IsNodeToState())
+                return connection.SourceNodeId ?? "";
             else
-                return a.SourceStateId == b.SourceStateId;
+                return connection.SourceStateId ?? "";
         }
         else
         {
-            // Check target matching
-            if (a.IsNodeToNode() || a.IsStateToNode())
-                return a.TargetNodeId == b.TargetNodeId;
+            // Getting target element
+            if (connection.IsNodeToNode() || connection.IsStateToNode())
+                return connection.TargetNodeId ?? "";
             else
-                return a.TargetStateId == b.TargetStateId;
+                return connection.TargetStateId ?? "";
         }
     }
+
+    /// <summary>
+    /// Check if the source element is a node (vs a state)
+    /// </summary>
+    private static bool IsSourceElementNode(ConnectionData connection, bool isSource)
+    {
+        if (isSource)
+        {
+            return connection.IsNodeToNode() || connection.IsNodeToState();
+        }
+        else
+        {
+            return connection.IsNodeToNode() || connection.IsStateToNode();
+        }
+    }
+
+
 
     /// <summary>
     /// Get target ID for sorting
