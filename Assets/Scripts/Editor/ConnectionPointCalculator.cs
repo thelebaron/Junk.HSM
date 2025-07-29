@@ -82,26 +82,112 @@ public static class ConnectionPointCalculator
     }
 
     /// <summary>
-    /// Apply spacing to prevent overlapping connections
+    /// Apply spacing to prevent overlapping connections with ordered positioning to minimize crossings
     /// </summary>
     private static Vector2 ApplySpacing(BoundingBox bounds, Edge edge, ConnectionData currentConnection,
         List<ConnectionData> allConnections, bool isSource)
     {
-        // Create a unique hash that includes connection ID, source/target flag, and edge
-        // This ensures that source and target points for the same connection are different
-        string hashInput = currentConnection.Id + "_" + (isSource ? "src" : "tgt") + "_" + edge.ToString();
-        int hash = hashInput.GetHashCode();
+        // Find all connections that share the same source and edge
+        var sameSourceConnections = GetConnectionsFromSameSourceAndEdge(currentConnection, allConnections, isSource, edge);
 
-        // Use a more sophisticated distribution to avoid clustering
-        float offset = Mathf.Abs(hash % 10000) / 10000.0f;
+        // Sort them by target ID to create consistent ordering
+        sameSourceConnections.Sort((a, b) =>
+        {
+            string targetA = isSource ? GetTargetId(a) : GetSourceId(a);
+            string targetB = isSource ? GetTargetId(b) : GetSourceId(b);
+            return string.Compare(targetA, targetB, System.StringComparison.Ordinal);
+        });
 
-        // Map to a range that avoids the very edges (0.15 to 0.85)
-        float parameter = 0.15f + (offset * 0.7f);
-        parameter = Mathf.Clamp01(parameter);
+        // Find the index of current connection in sorted list
+        int connectionIndex = sameSourceConnections.FindIndex(c => c.Id == currentConnection.Id);
 
-        var result = GetPointOnEdge(bounds, edge, parameter);
+        // If not found, fall back to hash-based approach
+        if (connectionIndex == -1)
+        {
+            string hashInput = currentConnection.Id + "_" + (isSource ? "src" : "tgt") + "_" + edge.ToString();
+            int hash = hashInput.GetHashCode();
+            float offset = Mathf.Abs(hash % 10000) / 10000.0f;
+            float parameter = 0.15f + (offset * 0.7f);
+            return GetPointOnEdge(bounds, edge, Mathf.Clamp01(parameter));
+        }
+
+        // Calculate parameter based on sorted position
+        float parameter;
+        if (sameSourceConnections.Count == 1)
+        {
+            parameter = 0.5f; // Center single connections
+        }
+        else
+        {
+            // Distribute evenly across the edge (0.15 to 0.85 range)
+            parameter = 0.15f + (connectionIndex / (float)(sameSourceConnections.Count - 1)) * 0.7f;
+        }
+
+        return GetPointOnEdge(bounds, edge, Mathf.Clamp01(parameter));
+    }
+
+    /// <summary>
+    /// Get all connections that originate from the same source and use the same edge
+    /// </summary>
+    private static List<ConnectionData> GetConnectionsFromSameSourceAndEdge(ConnectionData currentConnection,
+        List<ConnectionData> allConnections, bool isSource, Edge edge)
+    {
+        var result = new List<ConnectionData>();
+
+        foreach (var connection in allConnections)
+        {
+            if (HasSameSource(currentConnection, connection, isSource))
+            {
+                result.Add(connection);
+            }
+        }
 
         return result;
+    }
+
+    /// <summary>
+    /// Check if two connections have the same source
+    /// </summary>
+    private static bool HasSameSource(ConnectionData a, ConnectionData b, bool isSource)
+    {
+        if (isSource)
+        {
+            // Check source matching
+            if (a.IsNodeToNode() || a.IsNodeToState())
+                return a.SourceNodeId == b.SourceNodeId;
+            else
+                return a.SourceStateId == b.SourceStateId;
+        }
+        else
+        {
+            // Check target matching
+            if (a.IsNodeToNode() || a.IsStateToNode())
+                return a.TargetNodeId == b.TargetNodeId;
+            else
+                return a.TargetStateId == b.TargetStateId;
+        }
+    }
+
+    /// <summary>
+    /// Get target ID for sorting
+    /// </summary>
+    private static string GetTargetId(ConnectionData connection)
+    {
+        if (connection.IsNodeToNode() || connection.IsStateToNode())
+            return connection.TargetNodeId ?? "";
+        else
+            return connection.TargetStateId ?? "";
+    }
+
+    /// <summary>
+    /// Get source ID for sorting
+    /// </summary>
+    private static string GetSourceId(ConnectionData connection)
+    {
+        if (connection.IsNodeToNode() || connection.IsNodeToState())
+            return connection.SourceNodeId ?? "";
+        else
+            return connection.SourceStateId ?? "";
     }
 
 
