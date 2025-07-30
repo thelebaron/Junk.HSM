@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Junk.Yard.Editor
+namespace Junk.Web.Editor
 {
     /// <summary>
     /// Utility class for drawing smooth bezier curve connections between nodes and states in the graph editor.

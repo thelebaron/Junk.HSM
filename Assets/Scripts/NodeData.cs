@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Junk.Yard.Editor
+namespace Junk.Web.Editor
 {
     [Serializable]
     public class NodeData

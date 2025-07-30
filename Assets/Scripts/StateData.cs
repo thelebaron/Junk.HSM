@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Junk.Yard.Editor
+namespace Junk.Web.Editor
 {
     [Serializable]
     public class StateData

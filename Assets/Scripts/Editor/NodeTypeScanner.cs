@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Junk.Web;
 
-namespace Junk.Yard.Editor
+namespace Junk.Web.Editor
 {
     public static class NodeTypeScanner
     {
@@ -42,11 +40,6 @@ namespace Junk.Yard.Editor
             cachedNodeTypes = cachedNodeTypes.OrderBy(t => t.Name).ToList();
             
             return cachedNodeTypes;
-        }
-        
-        public static void ClearCache()
-        {
-            cachedNodeTypes = null;
         }
         
         public static string GetDisplayName(Type nodeType)

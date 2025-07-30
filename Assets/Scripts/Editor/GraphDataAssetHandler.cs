@@ -2,7 +2,7 @@
 using UnityEditor.Callbacks;
 using UnityEngine;
 
-namespace Junk.Yard.Editor
+namespace Junk.Web.Editor
 {
     public class GraphDataAssetHandler
     {
