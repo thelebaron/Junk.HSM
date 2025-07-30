@@ -259,11 +259,21 @@ namespace Junk.Web.Editor
         /// <summary>
         /// Get bounding box for a node
         /// </summary>
-        public static BoundingBox GetNodeBoundingBox(NodeData nodeData, Vector2 panOffset)
+        public static BoundingBox GetNodeBoundingBox(NodeData nodeData, Vector2 panOffset, NodeView nodeView = null)
         {
+            Vector2 nodeSize;
+            if (nodeView != null && nodeView.layout.width > 0 && nodeView.layout.height > 0)
+            {
+                nodeSize = new Vector2(nodeView.layout.width, nodeView.layout.height);
+            }
+            else
+            {
+                nodeSize = new Vector2(200, 100); // Fallback to default size
+            }
+
             return new BoundingBox(
                 nodeData.Position + panOffset,
-                nodeData.Size
+                nodeSize
             );
         }
 

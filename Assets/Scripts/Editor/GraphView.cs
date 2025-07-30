@@ -55,10 +55,8 @@ namespace Junk.Web.Editor
         public void LoadGraph(GraphData graph)
         {
             GraphData = graph;
-            Clear();
-
-            if (GraphData == null) return;
-
+            ClearGraphVisuals();
+            
             // Fix any corrupted data before loading
             EnsureValidData();
 
@@ -78,16 +76,35 @@ namespace Junk.Web.Editor
             foreach (var connectionData in allConnections)
                 CreateConnectionView(connectionData);
 
-            // Update all node sizes to ensure they encompass their states
-            foreach (var nodeView in nodeViews.Values)
-                nodeView.UpdateSize();
-
             // Update colors for all nodes and states
             foreach (var nodeView in nodeViews.Values)
                 nodeView.UpdateColors();
 
-            // Frame the view to show all content (delay to ensure layout is ready)
-            schedule.Execute(() => FrameAll()).ExecuteLater(100);
+            // Defer size calculation and framing until after the layout pass
+            schedule.Execute(UpdateAllNodeSizesAndFrame).ExecuteLater(100);
+        }
+
+        private void ClearGraphVisuals()
+        {
+            // Clear visual elements from the graph view
+            Clear();
+
+            // Clear dictionaries and lists
+            nodeViews.Clear();
+            stateViews.Clear();
+            connectionViews.Clear();
+        }
+
+        private void UpdateAllNodeSizesAndFrame()
+        {
+            // Update all node sizes to ensure they encompass their states
+            foreach (var nodeView in nodeViews.Values)
+            {
+                nodeView.UpdateSize();
+            }
+
+            // Frame the view to show all content
+            FrameAll();
         }
 
         private void CreateNodeView(NodeData nodeData)
@@ -219,8 +236,8 @@ namespace Junk.Web.Editor
             // Calculate node bounds in local coordinates (with pan offset applied)
             var nodeLeft   = nodeData.Position.x + panOffset.x;
             var nodeTop    = nodeData.Position.y + panOffset.y;
-            var nodeRight  = nodeLeft            + nodeData.Size.x;
-            var nodeBottom = nodeTop             + nodeData.Size.y;
+            var nodeRight  = nodeLeft            + nodeView.layout.width;
+            var nodeBottom = nodeTop             + nodeView.layout.height;
 
             return position.x >= nodeLeft && position.x <= nodeRight &&
                 position.y    >= nodeTop  && position.y <= nodeBottom;
@@ -458,7 +475,6 @@ namespace Junk.Web.Editor
             if (copiedNodeData == null) return;
 
             var newNode = new NodeData(copiedNodeData.Name + " Copy", position - panOffset);
-            newNode.Size = copiedNodeData.Size;
 
             // Copy connections
             foreach (var connection in copiedNodeData.OutgoingConnections)
@@ -555,10 +571,13 @@ namespace Junk.Web.Editor
             // Include all nodes
             foreach (var node in GraphData.Nodes)
             {
+                var nodeView = GetNodeView(node.Id);
+                if (nodeView == null) continue;
+
                 minX = Mathf.Min(minX, node.Position.x);
                 minY = Mathf.Min(minY, node.Position.y);
-                maxX = Mathf.Max(maxX, node.Position.x + node.Size.x);
-                maxY = Mathf.Max(maxY, node.Position.y + node.Size.y);
+                maxX = Mathf.Max(maxX, node.Position.x + nodeView.layout.width);
+                maxY = Mathf.Max(maxY, node.Position.y + nodeView.layout.height);
             }
 
             // Include all states from all nodes
@@ -566,13 +585,13 @@ namespace Junk.Web.Editor
             {
                 foreach (var state in node.States)
                 {
-                    const float stateWidth  = 100f; // Approximate state width
-                    const float stateHeight = 25f;  // Approximate state height
+                    var stateView = GetStateView(state.Id);
+                    if (stateView == null) continue;
 
                     minX = Mathf.Min(minX, state.Position.x);
                     minY = Mathf.Min(minY, state.Position.y);
-                    maxX = Mathf.Max(maxX, state.Position.x + stateWidth);
-                    maxY = Mathf.Max(maxY, state.Position.y + stateHeight);
+                    maxX = Mathf.Max(maxX, state.Position.x + stateView.layout.width);
+                    maxY = Mathf.Max(maxY, state.Position.y + stateView.layout.height);
                 }
             }
 

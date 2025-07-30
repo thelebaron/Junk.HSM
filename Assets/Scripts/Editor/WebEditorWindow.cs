@@ -688,26 +688,22 @@ namespace Junk.Web.Editor
 
                 if (newParentNode != null)
                 {
-                    selectedState.ParentNodeId = newParentNode.Id;
-                    newParentNode.AddState(selectedState, currentGraph);
-
-                    // Position state in front of the node
-                    var nodeCenter = new Vector2(
-                        newParentNode.Position.x + newParentNode.Size.x * 0.5f,
-                        newParentNode.Position.y + newParentNode.Size.y * 0.5f
-                    );
-                    selectedState.Position = nodeCenter;
-
-                    var stateView = graphView.GetStateView(selectedState.Id);
-                    if (stateView != null)
-                    {
-                        stateView.UpdatePosition();
-                        stateView.UpdateLabel(); // Update label to show new node prefix
-                    }
-
                     var newNodeView = graphView.GetNodeView(newParentNode.Id);
                     if (newNodeView != null)
                     {
+                        var nodeCenter = new Vector2(
+                            newParentNode.Position.x + newNodeView.layout.width * 0.5f,
+                            newParentNode.Position.y + newNodeView.layout.height * 0.5f
+                        );
+                        selectedState.Position = nodeCenter;
+
+                        var stateView = graphView.GetStateView(selectedState.Id);
+                        if (stateView != null)
+                        {
+                            stateView.UpdatePosition();
+                            stateView.UpdateLabel(); // Update label to show new node prefix
+                        }
+
                         newNodeView.UpdateSize();
                     }
                 }

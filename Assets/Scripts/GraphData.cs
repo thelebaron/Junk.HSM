@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Junk.Web.Editor
+namespace Junk.Web
 {
     [CreateAssetMenu(fileName = "New Graph", menuName = "Graph Editor/Graph Data")]
     public class GraphData : ScriptableObject

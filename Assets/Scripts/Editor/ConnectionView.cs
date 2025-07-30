@@ -226,7 +226,8 @@ namespace Junk.Web.Editor
                 var sourceNode = graphData.GetNodeById(connectionData.SourceNodeId);
                 if (sourceNode == null) return new ConnectionPointCalculator.BoundingBox();
 
-                return ConnectionPointCalculator.GetNodeBoundingBox(sourceNode, panOffset);
+                var sourceNodeView = graphView.GetNodeView(connectionData.SourceNodeId);
+                return ConnectionPointCalculator.GetNodeBoundingBox(sourceNode, panOffset, sourceNodeView);
             }
             else if (connectionData.IsStateToState() || connectionData.IsStateToNode())
             {
@@ -253,7 +254,8 @@ namespace Junk.Web.Editor
                 var targetNode = graphData.GetNodeById(connectionData.TargetNodeId);
                 if (targetNode == null) return new ConnectionPointCalculator.BoundingBox();
 
-                return ConnectionPointCalculator.GetNodeBoundingBox(targetNode, panOffset);
+                var targetNodeView = graphView.GetNodeView(connectionData.TargetNodeId);
+                return ConnectionPointCalculator.GetNodeBoundingBox(targetNode, panOffset, targetNodeView);
             }
             else if (connectionData.IsStateToState() || connectionData.IsNodeToState())
             {

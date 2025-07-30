@@ -60,20 +60,56 @@ namespace Junk.Web.Editor
 
         public void UpdateSize()
         {
+            RecalculateSizeAndPosition();
+        }
+
+        private void RecalculateSizeAndPosition()
+        {
             var oldPosition = nodeData.Position;
 
-            // Pass GraphData to ensure we get the most up-to-date state information
+            const float padding = 20f;
+            const float titleHeight = 30f;
+            const float minWidth = 200f;
+            const float minHeight = 60f;
+
             var graphData = graphView.GraphData;
-            nodeData.RecalculateSize(graphData);
+            var childStates = graphData.GetStatesForNode(nodeData.Id);
 
-            // Update visual size
-            style.width  = nodeData.Size.x;
-            style.height = nodeData.Size.y;
+            if (childStates.Count == 0)
+            {
+                style.width = minWidth;
+                style.height = minHeight;
+                return;
+            }
 
-            // Update position since it may have changed during recalculation
+            float minX = float.MaxValue, minY = float.MaxValue;
+            float maxX = float.MinValue, maxY = float.MinValue;
+
+            foreach (var state in childStates)
+            {
+                var stateView = graphView.GetStateView(state.Id);
+                if (stateView == null) continue;
+
+                minX = Mathf.Min(minX, state.Position.x);
+                minY = Mathf.Min(minY, state.Position.y);
+                maxX = Mathf.Max(maxX, state.Position.x + stateView.layout.width);
+                maxY = Mathf.Max(maxY, state.Position.y + stateView.layout.height);
+            }
+
+            float newNodeX = minX - padding;
+            float newNodeY = minY - padding - titleHeight;
+            float newWidth = (maxX - minX) + (padding * 2);
+            float newHeight = (maxY - minY) + (padding * 2) + titleHeight;
+
+            newWidth = Mathf.Max(newWidth, minWidth);
+            newHeight = Mathf.Max(newHeight, minHeight);
+
+            nodeData.Position = new Vector2(newNodeX, newNodeY);
+            style.width = newWidth;
+            style.height = newHeight;
+
             UpdatePosition();
 
-            // If the node position changed, we need to update connections
             if (oldPosition != nodeData.Position)
             {
                 graphView.UpdateConnections();
