@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 
 namespace Junk.Web.Editor
 {
-    public class GraphView : VisualElement
+    public partial class GraphView : VisualElement
     {
         private Dictionary<string, NodeView>  nodeViews       = new Dictionary<string, NodeView>();
         private Dictionary<string, StateView> stateViews      = new Dictionary<string, StateView>();
@@ -60,7 +60,7 @@ namespace Junk.Web.Editor
             if (GraphData == null) return;
 
             // Fix any corrupted data before loading
-            FixCorruptedData();
+            EnsureValidData();
 
             // Create node views
             foreach (var nodeData in GraphData.Nodes)
@@ -117,74 +117,7 @@ namespace Junk.Web.Editor
             Add(connectionView);
         }
 
-        private void BuildContextualMenu(ContextualMenuPopulateEvent evt)
-        {
-            lastContextMenuPosition = evt.localMousePosition;
-
-            // Check if mouse is over a node (selected or unselected)
-            var hoveredNodeView = GetNodeViewAtPosition(evt.localMousePosition);
-
-            // When a node is selected, show "Add State" option
-            if (selectedNodeView != null)
-            {
-                evt.menu.AppendAction("Add State", (a) => CreateStateAssignedTo(lastContextMenuPosition, selectedNodeView.NodeData.Id));
-
-                // Add INode-derived struct types as prenamed node options with auto-assignment
-                var nodeTypes = NodeTypeScanner.GetAllINodeStructTypes();
-                if (nodeTypes.Count > 0)
-                {
-                    evt.menu.AppendSeparator();
-                    foreach (var nodeType in nodeTypes)
-                    {
-                        var displayName = NodeTypeScanner.GetDisplayName(nodeType);
-                        evt.menu.AppendAction($"Add {displayName} Node", (a) => CreateTypedNodeAssignedTo(lastContextMenuPosition, displayName, selectedNodeView.NodeData.Id));
-                    }
-                }
-            }
-            // When right-clicking on an unselected node, show "Add State" for that node
-            else if (hoveredNodeView != null)
-            {
-                evt.menu.AppendAction("Add State", (a) => CreateStateAssignedTo(lastContextMenuPosition, hoveredNodeView.NodeData.Id));
-            }
-            else
-            {
-                // When right-clicking empty space, only show "Create Node"
-                evt.menu.AppendAction("Create Node", (a) => CreateNode(lastContextMenuPosition));
-
-                // Add INode-derived struct types as prenamed node options
-                var nodeTypes = NodeTypeScanner.GetAllINodeStructTypes();
-                if (nodeTypes.Count > 0)
-                {
-                    evt.menu.AppendSeparator();
-                    foreach (var nodeType in nodeTypes)
-                    {
-                        var displayName = NodeTypeScanner.GetDisplayName(nodeType);
-                        evt.menu.AppendAction($"Add {displayName} Node", (a) => CreateTypedNode(lastContextMenuPosition, displayName));
-                    }
-                }
-            }
-
-            evt.menu.AppendSeparator();
-
-            if (selectedStateView != null)
-            {
-                evt.menu.AppendAction("Copy State", (a) => CopyState());
-                evt.menu.AppendAction("Paste State", (a) => PasteState(lastContextMenuPosition));
-            }
-            else if (selectedNodeView != null)
-            {
-                evt.menu.AppendAction("Copy Node", (a) => CopyNode());
-                evt.menu.AppendAction("Paste Node", (a) => PasteNode(lastContextMenuPosition));
-            }
-
-            if (copiedStateData != null || copiedNodeData != null)
-            {
-                if (copiedStateData != null)
-                    evt.menu.AppendAction("Paste State", (a) => PasteState(lastContextMenuPosition));
-                if (copiedNodeData != null)
-                    evt.menu.AppendAction("Paste Node", (a) => PasteNode(lastContextMenuPosition));
-            }
-        }
+        
 
         private void CreateNode(Vector2 position)
         {
@@ -194,32 +127,7 @@ namespace Junk.Web.Editor
             GraphData.AddNode(nodeData);
             CreateNodeView(nodeData);
         }
-
-        private void CreateNodeAssignedTo(Vector2 position, string parentNodeId)
-        {
-            if (GraphData == null) return;
-
-            var nodeData = new NodeData("New Node", position - panOffset);
-            GraphData.AddNode(nodeData);
-            CreateNodeView(nodeData);
-
-            // Auto-assign the new node to the selected parent node by creating a connection
-            var parentNode = GraphData.GetNodeById(parentNodeId);
-            if (parentNode != null)
-            {
-                var connection = new ConnectionData(
-                    string.Empty, // No source state (node to node connection)
-                    string.Empty, // No target state (node to node connection)
-                    parentNodeId, // Source node ID
-                    nodeData.Id,  // Target node ID
-                    true          // IsNodeToNodeConnection
-                );
-
-                parentNode.AddConnection(connection);
-                RefreshConnections();
-            }
-        }
-
+        
         private void CreateTypedNode(Vector2 position, string nodeTypeName)
         {
             if (GraphData == null) return;
@@ -328,17 +236,13 @@ namespace Junk.Web.Editor
         {
             if (nodeViews.TryGetValue(nodeId, out var nodeView))
             {
-                // First, remove all state views that belong to this node
-                if (GraphData != null)
+                var statesForNode = GraphData.GetStatesForNode(nodeId);
+                foreach (var stateData in statesForNode)
                 {
-                    var statesForNode = GraphData.GetStatesForNode(nodeId);
-                    foreach (var stateData in statesForNode)
+                    if (stateViews.TryGetValue(stateData.Id, out var stateView))
                     {
-                        if (stateViews.TryGetValue(stateData.Id, out var stateView))
-                        {
-                            stateViews.Remove(stateData.Id);
-                            stateView.RemoveFromHierarchy();
-                        }
+                        stateViews.Remove(stateData.Id);
+                        stateView.RemoveFromHierarchy();
                     }
                 }
 
@@ -347,13 +251,10 @@ namespace Junk.Web.Editor
                 nodeView.RemoveFromHierarchy();
 
                 // Remove from graph data (this will also remove the state data)
-                if (GraphData != null)
+                var nodeData = GraphData.GetNodeById(nodeId);
+                if (nodeData != null)
                 {
-                    var nodeData = GraphData.GetNodeById(nodeId);
-                    if (nodeData != null)
-                    {
-                        GraphData.RemoveNode(nodeData);
-                    }
+                    GraphData.RemoveNode(nodeData);
                 }
 
                 RefreshConnections();
@@ -362,10 +263,9 @@ namespace Junk.Web.Editor
 
         public void RemoveStateView(string stateId)
         {
-            Assert.IsNotNull(GraphData);
-
             if (!stateViews.TryGetValue(stateId, out var stateView))
                 return;
+            
             stateViews.Remove(stateId);
             stateView.RemoveFromHierarchy();
 
@@ -405,111 +305,7 @@ namespace Junk.Web.Editor
             }
         }
 
-        private void OnMouseDown(MouseDownEvent evt)
-        {
-            if (evt.button == 2) // Middle mouse button
-            {
-                isPanning         = true;
-                lastMousePosition = evt.localMousePosition;
-                this.CaptureMouse();
-                evt.StopPropagation();
-            }
-            else if (evt.button == 1) // Right mouse button for panning (alternative)
-            {
-                if (evt.ctrlKey) // Ctrl + Right mouse for panning
-                {
-                    isPanning         = true;
-                    lastMousePosition = evt.localMousePosition;
-                    this.CaptureMouse();
-                    evt.StopPropagation();
-                }
-            }
-            else if (evt.button == 0) // Left mouse button on empty space
-            {
-                DeselectAll();
-                this.Focus(); // Ensure GraphView has focus for keyboard events
-            }
-        }
-
-        private void OnMouseMove(MouseMoveEvent evt)
-        {
-            if (isPanning)
-            {
-                var delta = evt.localMousePosition - lastMousePosition;
-                panOffset         += delta;
-                lastMousePosition =  evt.localMousePosition;
-
-                // Update all positions
-                UpdateAllPositions();
-
-                evt.StopPropagation();
-            }
-        }
-
-        private void OnMouseUp(MouseUpEvent evt)
-        {
-            if ((evt.button == 2 || (evt.button == 1 && evt.ctrlKey)) && isPanning)
-            {
-                isPanning = false;
-                this.ReleaseMouse();
-                evt.StopPropagation();
-            }
-        }
-
-        private void OnWheel(WheelEvent evt)
-        {
-            // Zoom functionality could be added here
-            evt.StopPropagation();
-        }
-
-        private void OnKeyDown(KeyDownEvent evt)
-        {
-            if (evt.keyCode == KeyCode.Delete)
-            {
-                if (selectedStateView != null)
-                {
-                    RemoveStateView(selectedStateView.StateData.Id);
-                }
-                else if (selectedNodeView != null)
-                {
-                    RemoveNodeView(selectedNodeView.NodeData.Id);
-                }
-
-                evt.StopPropagation();
-            }
-            else if (evt.ctrlKey && evt.keyCode == KeyCode.C)
-            {
-                if (selectedStateView != null)
-                {
-                    CopyState();
-                }
-                else if (selectedNodeView != null)
-                {
-                    CopyNode();
-                }
-
-                evt.StopPropagation();
-            }
-            else if (evt.ctrlKey && evt.keyCode == KeyCode.V)
-            {
-                var mousePos = lastContextMenuPosition;
-                if (copiedStateData != null)
-                {
-                    PasteState(mousePos);
-                }
-                else if (copiedNodeData != null)
-                {
-                    PasteNode(mousePos);
-                }
-
-                evt.StopPropagation();
-            }
-            else if (evt.keyCode == KeyCode.F)
-            {
-                FrameAll();
-                evt.StopPropagation();
-            }
-        }
+        
 
         public Vector2 GetPanOffset()
         {
@@ -623,7 +419,8 @@ namespace Junk.Web.Editor
 
         private void PasteState(Vector2 position)
         {
-            if (copiedStateData == null || GraphData == null) return;
+            if (copiedStateData == null) 
+                return;
 
             var newState = new StateData(copiedStateData.Name + " Copy", position - panOffset, copiedStateData.ParentNodeId);
 
@@ -658,7 +455,7 @@ namespace Junk.Web.Editor
 
         private void PasteNode(Vector2 position)
         {
-            if (copiedNodeData == null || GraphData == null) return;
+            if (copiedNodeData == null) return;
 
             var newNode = new NodeData(copiedNodeData.Name + " Copy", position - panOffset);
             newNode.Size = copiedNodeData.Size;
@@ -708,8 +505,6 @@ namespace Junk.Web.Editor
 
         public void FrameAll()
         {
-            if (GraphData == null) return;
-
             // Check if layout is valid
             if (layout.width <= 0 || layout.height <= 0)
             {
@@ -746,48 +541,6 @@ namespace Junk.Web.Editor
 
             // Update all positions
             UpdateAllPositions();
-        }
-
-        private void FixCorruptedData()
-        {
-            if (GraphData == null) return;
-
-            // Fix corrupted node positions (including extremely large values)
-            for (int i = 0; i < GraphData.Nodes.Count; i++)
-            {
-                var node = GraphData.Nodes[i];
-                if (float.IsNaN(node.Position.x)       || float.IsNaN(node.Position.y) ||
-                    Mathf.Abs(node.Position.x) > 10000 || Mathf.Abs(node.Position.y) > 10000)
-                {
-                    UnityEngine.Debug.LogWarning($"Fixed corrupted position for node: {node.Name}");
-                    node.Position = new Vector2(100 + (i % 3) * 300, 100 + (i / 3) * 200);
-                }
-
-                if (float.IsNaN(node.Size.x) || float.IsNaN(node.Size.y) ||
-                    node.Size.x <= 0         || node.Size.y <= 0)
-                {
-                    UnityEngine.Debug.LogWarning($"Fixed corrupted size for node: {node.Name}");
-                    node.Size = new Vector2(200, 100);
-                }
-            }
-
-            // Fix corrupted state positions (including extremely large values)
-            int stateIndex = 0;
-            foreach (var node in GraphData.Nodes)
-            {
-                foreach (var state in node.States)
-                {
-                    if (float.IsNaN(state.Position.x)       || float.IsNaN(state.Position.y) ||
-                        Mathf.Abs(state.Position.x) > 10000 || Mathf.Abs(state.Position.y) > 10000)
-                    {
-                        UnityEngine.Debug.LogWarning($"Fixed corrupted position for state: {state.Name}");
-                        // Position states in a grid if they're corrupted
-                        state.Position = new Vector2(150 + (stateIndex % 5) * 120, 150 + (stateIndex / 5) * 50);
-                    }
-
-                    stateIndex++;
-                }
-            }
         }
 
         private Rect CalculateContentBounds()

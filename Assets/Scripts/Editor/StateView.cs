@@ -202,10 +202,15 @@ namespace Junk.Web.Editor
             if (isSelected)
             {
                 AddToClassList("state-selected");
+                style.borderTopColor    = Color.white;
+                style.borderBottomColor = Color.white;
+                style.borderLeftColor   = Color.white;
+                style.borderRightColor  = Color.white;
             }
             else
             {
                 RemoveFromClassList("state-selected");
+                UpdateColors();
             }
         }
 

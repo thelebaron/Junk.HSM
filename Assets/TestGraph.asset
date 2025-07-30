@@ -15,12 +15,12 @@ MonoBehaviour:
   Nodes:
   - Name: freeze
     Id: 3f5e880b-dfaf-4d2d-8a55-6bb2dd3b4cb0
-    Position: {x: -335, y: 38}
-    Size: {x: 539, y: 214}
+    Position: {x: -342, y: 68}
+    Size: {x: 493, y: 133}
     States:
     - Name: ' into'
       Id: 21ed811f-6f83-4f0e-9702-8e662ba46817
-      position: {x: -315, y: 88}
+      position: {x: -322, y: 129}
       ParentNodeId: 3f5e880b-dfaf-4d2d-8a55-6bb2dd3b4cb0
       OutgoingConnections:
       - Id: 81e41bf9-db15-47b2-9cdc-8b79045b1b7e
@@ -31,7 +31,7 @@ MonoBehaviour:
         IsNodeToNodeConnection: 0
     - Name: loop
       Id: e25c0ccb-f6c4-4a71-ae95-cb207a779b9f
-      position: {x: -122, y: 207}
+      position: {x: -99, y: 156}
       ParentNodeId: 3f5e880b-dfaf-4d2d-8a55-6bb2dd3b4cb0
       OutgoingConnections:
       - Id: 63b4bad1-bbea-4808-8037-03a3eb704648
@@ -42,7 +42,7 @@ MonoBehaviour:
         IsNodeToNodeConnection: 0
     - Name: to_idle
       Id: f6e65f45-eb03-4dd6-9d14-060fd5b04b4c
-      position: {x: 84, y: 119}
+      position: {x: 31, y: 118}
       ParentNodeId: 3f5e880b-dfaf-4d2d-8a55-6bb2dd3b4cb0
       OutgoingConnections:
       - Id: 4ae28945-f4e2-4b5e-b1a0-7f003f4ee332
@@ -61,22 +61,22 @@ MonoBehaviour:
     NodeColor: {r: 0, g: 0.53, b: 0.53, a: 1}
   - Name: fire
     Id: a0eec526-56d1-4d10-a993-b4d1397ff751
-    Position: {x: 311, y: 20}
+    Position: {x: 401, y: 53}
     Size: {x: 330, y: 240}
     States:
     - Name: from
       Id: f3372d8a-18bb-4903-867a-21286657bb19
-      position: {x: 331, y: 70}
+      position: {x: 421, y: 103}
       ParentNodeId: a0eec526-56d1-4d10-a993-b4d1397ff751
       OutgoingConnections: []
     - Name: loop
       Id: 4ff93adb-c0b5-4df5-9d5f-19f1295dbfac
-      position: {x: 366, y: 215}
+      position: {x: 456, y: 248}
       ParentNodeId: a0eec526-56d1-4d10-a993-b4d1397ff751
       OutgoingConnections: []
     - Name: exit
       Id: 5f15f6ef-a980-4980-9d06-b3968fb18b3c
-      position: {x: 521, y: 163}
+      position: {x: 611, y: 196}
       ParentNodeId: a0eec526-56d1-4d10-a993-b4d1397ff751
       OutgoingConnections: []
     OutgoingConnections: []
@@ -84,7 +84,7 @@ MonoBehaviour:
   - Name: Combat
     Id: 6f0c097b-66fc-4ad1-b43b-f00e729bc128
     Position: {x: 286, y: -243.75}
-    Size: {x: 388, y: 225}
+    Size: {x: 422, y: 215}
     States:
     - Name: into
       Id: 48d44f95-cb20-4dd1-8319-2c76b32c4003
@@ -99,19 +99,24 @@ MonoBehaviour:
         IsNodeToNodeConnection: 0
     - Name: loop
       Id: f01dfaa0-8784-416a-bd2c-d5b9ace840e6
-      position: {x: 554, y: -63.75}
+      position: {x: 588, y: -73.75}
       ParentNodeId: 6f0c097b-66fc-4ad1-b43b-f00e729bc128
       OutgoingConnections: []
     OutgoingConnections: []
-    NodeColor: {r: 0.54, g: 0, b: 0, a: 1}
+    NodeColor: {r: 0.52, g: 0.48, b: 0.01, a: 1}
   - Name: code
     Id: 684b9a4c-a10f-4e70-a2eb-ac3dd0e66840
-    Position: {x: -110, y: -182.75}
-    Size: {x: 200, y: 95}
+    Position: {x: -195, y: -209.375}
+    Size: {x: 282, y: 127.625}
     States:
     - Name: idle
       Id: fc17342b-da9d-457a-9e08-fd29c850dbe9
-      position: {x: -90, y: -132.75}
+      position: {x: -175, y: -126.75}
+      ParentNodeId: 684b9a4c-a10f-4e70-a2eb-ac3dd0e66840
+      OutgoingConnections: []
+    - Name: New State
+      Id: edbdc23e-f8a7-4f69-8580-6c55b1f0dae4
+      position: {x: -33, y: -159.375}
       ParentNodeId: 684b9a4c-a10f-4e70-a2eb-ac3dd0e66840
       OutgoingConnections: []
     OutgoingConnections: []
