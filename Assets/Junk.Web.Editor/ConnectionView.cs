@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Junk.UI.Web.Editor
+namespace Junk.Web.Editor
 {
     public class ConnectionView : VisualElement
     {
@@ -9,14 +9,12 @@ namespace Junk.UI.Web.Editor
         private GraphView      graphView;
 
         // Cache for connection points to avoid duplicate calculations
-        private Vector2?                        cachedSourcePoint;
-        private Vector2?                        cachedTargetPoint;
-        private ConnectionPointCalculator.Edge? cachedSourceEdge;
-        private ConnectionPointCalculator.Edge? cachedTargetEdge;
+        private Vector2                        cachedSourcePoint;
+        private Vector2                        cachedTargetPoint;
+        private ConnectionPointCalculator.Edge cachedSourceEdge;
+        private ConnectionPointCalculator.Edge cachedTargetEdge;
         private Vector2                         lastPanOffset;
-        private bool                            cacheValid = false;
-
-        public ConnectionData ConnectionData => connectionData;
+        private bool                            cacheValid;
 
         public ConnectionView(ConnectionData data, GraphView parent)
         {
@@ -94,11 +92,11 @@ namespace Junk.UI.Web.Editor
             float curveStrength = BezierCurveUtility.GetCurveStrengthForConnectionType(connectionType);
 
             BezierCurveUtility.DrawBezierCurve(painter, sourcePos, targetPos,
-                cachedSourceEdge.Value, cachedTargetEdge.Value, curveStrength);
+                cachedSourceEdge, cachedTargetEdge, curveStrength);
 
             // Draw arrow at target using actual curve direction
             DrawArrowOnCurve(painter, sourcePos, targetPos,
-                cachedSourceEdge.Value, cachedTargetEdge.Value, curveStrength);
+                cachedSourceEdge, cachedTargetEdge, curveStrength);
         }
 
 
@@ -156,20 +154,13 @@ namespace Junk.UI.Web.Editor
         {
             var graphData = graphView.GraphData;
             if (graphData == null)
-            {
-                cachedSourcePoint = Vector2.zero;
-                cachedTargetPoint = Vector2.zero;
-                cachedSourceEdge  = null;
-                cachedTargetEdge  = null;
-                cacheValid        = true;
                 return;
-            }
-
+            
             var panOffset = graphView.GetPanOffset();
 
             // Check if cache is still valid (pan offset hasn't changed)
-            if (cacheValid                && lastPanOffset == panOffset && cachedSourcePoint.HasValue && cachedTargetPoint.HasValue &&
-                cachedSourceEdge.HasValue && cachedTargetEdge.HasValue)
+            if (cacheValid && lastPanOffset == panOffset && cachedSourcePoint.Equals(Vector2.zero) && cachedTargetPoint.Equals(Vector2.zero) &&
+                cachedSourceEdge.Equals(null) && cachedTargetEdge.Equals(null))
             {
                 return; // Use cached values
             }
@@ -184,8 +175,8 @@ namespace Junk.UI.Web.Editor
             {
                 cachedSourcePoint = Vector2.zero;
                 cachedTargetPoint = Vector2.zero;
-                cachedSourceEdge  = null;
-                cachedTargetEdge  = null;
+                cachedSourceEdge  = default;
+                cachedTargetEdge  = default;
             }
             else
             {
@@ -206,13 +197,13 @@ namespace Junk.UI.Web.Editor
         private Vector2 GetSourcePosition()
         {
             CalculateConnectionPoints();
-            return cachedSourcePoint ?? Vector2.zero;
+            return cachedSourcePoint;
         }
 
         private Vector2 GetTargetPosition()
         {
             CalculateConnectionPoints();
-            return cachedTargetPoint ?? Vector2.zero;
+            return cachedTargetPoint;
         }
 
         private ConnectionPointCalculator.BoundingBox GetSourceBoundingBox(Vector2 panOffset)

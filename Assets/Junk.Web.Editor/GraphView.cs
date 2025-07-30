@@ -4,7 +4,7 @@ using Unity.Assertions;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Junk.UI.Web.Editor
+namespace Junk.Web.Editor
 {
     public partial class GraphView : VisualElement
     {

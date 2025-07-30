@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEngine;
 
-namespace Junk.UI.Web.Editor
+namespace Junk.Web.Editor
 {
     /// <summary>
     /// Utility class for calculating dynamic connection points on the edges of nodes and states.
