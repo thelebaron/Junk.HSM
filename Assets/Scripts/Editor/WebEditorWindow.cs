@@ -161,7 +161,7 @@ namespace Junk.Web.Editor
             {
                 EditorUtility.SetDirty(currentGraph);
                 AssetDatabase.SaveAssets();
-                Debug.Log("Graph saved successfully!");
+                Debug.Log("Graph saved.");
             }
         }
 

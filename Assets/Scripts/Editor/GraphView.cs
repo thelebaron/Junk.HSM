@@ -187,8 +187,11 @@ namespace Junk.Web.Editor
                 Debug.LogError($"Parent node not found for ID: {parentNodeId}");
                 return;
             }
+
+            // Defer the size update until after the layout pass to ensure StateView dimensions are calculated
             var parentNodeView = GetNodeView(parentNodeId);
-            parentNodeView?.UpdateSize();
+            if (parentNodeView != null) 
+                schedule.Execute(() => parentNodeView.UpdateSize()).ExecuteLater(50);
         }
 
         public NodeView GetNodeView(string nodeId)
@@ -454,7 +457,8 @@ namespace Junk.Web.Editor
                 var parentNodeView = GetNodeView(newState.ParentNodeId);
                 if (parentNodeView != null)
                 {
-                    parentNodeView.UpdateSize();
+                    // Defer the size update until after the layout pass to ensure StateView dimensions are calculated
+                    schedule.Execute(() => parentNodeView.UpdateSize()).ExecuteLater(50);
                 }
             }
 
