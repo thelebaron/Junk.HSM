@@ -61,6 +61,9 @@ namespace Junk.Web.Editor
             // Create the root visual element
             var root = rootVisualElement;
 
+            // Register for keydown events
+            root.RegisterCallback<KeyDownEvent>(OnKeyDown);
+
             // Create toolbar
             var toolbar = new Toolbar();
 
@@ -114,6 +117,15 @@ namespace Junk.Web.Editor
 
             // Restore previously loaded graph after domain reload
             RestoreCurrentGraph();
+        }
+
+        private void OnKeyDown(KeyDownEvent evt)
+        {
+            if (evt.keyCode == KeyCode.S && evt.ctrlKey)
+            {
+                SaveGraph();
+                evt.StopPropagation();
+            }
         }
 
         private void OnGraphChanged(ChangeEvent<Object> evt)
