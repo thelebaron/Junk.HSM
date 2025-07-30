@@ -82,6 +82,10 @@ namespace Junk.Yard.Editor
             foreach (var nodeView in nodeViews.Values)
                 nodeView.UpdateSize();
 
+            // Update colors for all nodes and states
+            foreach (var nodeView in nodeViews.Values)
+                nodeView.UpdateColors();
+
             // Frame the view to show all content (delay to ensure layout is ready)
             schedule.Execute(() => FrameAll()).ExecuteLater(100);
         }
@@ -91,6 +95,9 @@ namespace Junk.Yard.Editor
             var nodeView = new NodeView(nodeData, this);
             nodeViews[nodeData.Id] = nodeView;
             Add(nodeView);
+
+            // Ensure colors are applied after creation
+            nodeView.UpdateColors();
         }
 
         private void CreateStateView(StateData stateData)
@@ -98,6 +105,9 @@ namespace Junk.Yard.Editor
             var stateView = new StateView(stateData, this);
             stateViews[stateData.Id] = stateView;
             Add(stateView);
+
+            // Ensure colors are applied after creation
+            stateView.UpdateColors();
         }
 
         private void CreateConnectionView(ConnectionData connectionData)

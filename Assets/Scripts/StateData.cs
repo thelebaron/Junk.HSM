@@ -11,7 +11,7 @@ namespace Junk.Yard.Editor
         public                   string               Name;
         public                   string               Id;
         [SerializeField] private Vector2              position; // Changed from localPosition to position (world position)
-        public                   string               ParentNodeId;
+        public                   string               ParentNodeId; // should never be null
         public                   List<ConnectionData> OutgoingConnections;
 
         public Vector2 Position

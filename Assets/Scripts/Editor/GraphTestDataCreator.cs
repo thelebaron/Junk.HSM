@@ -13,9 +13,11 @@ namespace Junk.Yard.Editor
 
             // Create freeze node
             var freezeNode = new NodeData("freeze", new Vector2(50, 50));
+            freezeNode.NodeColor = Color.cyan; // Set a distinctive color for freeze node
 
             // Create fire node
             var fireNode = new NodeData("fire", new Vector2(350, 50));
+            fireNode.NodeColor = new Color(1f, 0.5f, 0f, 1f); // Orange color for fire node
 
             // Add nodes to graph
             graphData.AddNode(freezeNode);

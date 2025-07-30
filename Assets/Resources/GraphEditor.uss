@@ -6,9 +6,12 @@
 .node {
     position: absolute;
     background-color: rgba(60, 60, 60, 0.8);
-    border-color: rgb(100, 100, 100);
-    border-width: 2px;
-    border-radius: 5px;
+    border-bottom-color: rgb(128, 128, 128);
+    border-top-color: rgb(128, 128, 128);
+    border-left-color: rgb(128, 128, 128);
+    border-right-color: rgb(128, 128, 128);
+    border-width: 1px;
+    border-radius: 0px;
     min-width: 150px;
     min-height: 60px;
     padding: 0;
@@ -22,14 +25,14 @@
 
 .node-selected {
     border-color: rgb(100, 150, 200);
-    border-width: 3px;
-    background-color: rgba(80, 90, 110, 0.8);
+    border-width: 2px;
+    background-color: rgba(80, 90, 110, 0.2);
 }
 
 .node-title-bar {
-    background-color: rgb(80, 80, 80);
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
+    background-color: rgb(80, 80, 80, 0.0);
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
     padding: 5px 10px;
     border-bottom-width: 1px;
     border-bottom-color: rgb(100, 100, 100);
@@ -51,25 +54,31 @@
     position: absolute;
     background-color: rgb(80, 40, 40);
     border-color: rgb(120, 60, 60);
-    border-width: 2px;
-    border-radius: 5px;
-    padding: 5px 10px;
-    flex-direction: row;
-    align-items: center;
-    min-height: 25px;
+    border-width: 1px;
+    border-radius: 0px;
+    padding: 0px; /* Remove padding to allow internal sections to control spacing */
+    flex-direction: column;
+    align-items: stretch; /* Make sections fill the width */
+    min-height: 45px;
     min-width: 80px;
     z-index: 10; /* Ensure states appear in front of nodes */
 }
 
 .state:hover {
-    background-color: rgb(100, 50, 50);
     border-color: rgb(150, 80, 80);
 }
 
+.state:hover .state-label-section {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
 .state-selected {
-    background-color: rgb(120, 60, 60);
     border-color: rgb(200, 100, 100);
-    border-width: 3px;
+    border-width: 2px;
+}
+
+.state-selected .state-label-section {
+    background-color: rgba(255, 255, 255, 0.15);
 }
 
 .connection-point {
@@ -84,10 +93,31 @@
     background-color: rgb(255, 255, 255);
 }
 
+.state-label-section {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 8px;
+    background-color: transparent;
+    flex-grow: 1;
+}
+
+.state-empty-section {
+    border-top-width: 1px;
+    border-top-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.2);
+    min-height: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
 .state-label {
     color: rgb(220, 220, 220);
     font-size: 12px;
-    flex-grow: 1;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .state-selected .state-label {

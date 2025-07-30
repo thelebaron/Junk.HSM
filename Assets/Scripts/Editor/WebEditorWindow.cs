@@ -228,10 +228,45 @@ namespace Junk.Yard.Editor
             nodeInspector = new VisualElement();
             nodeInspector.AddToClassList("inspector-section");
 
-            nodeNameField                    = new TextField("Node Name");
-            nodeNameField.style.marginBottom = 10;
+            // Create container for node name and color button
+            var nodeNameContainer = new VisualElement();
+            nodeNameContainer.style.flexDirection = FlexDirection.Row;
+            nodeNameContainer.style.alignItems = Align.Center;
+            nodeNameContainer.style.marginBottom = 10;
+
+            nodeNameField = new TextField("Node Name");
+            nodeNameField.style.flexGrow = 1;
+            nodeNameField.style.marginBottom = 0;
+            nodeNameField.style.marginRight = 5;
             nodeNameField.RegisterValueChangedCallback(OnNodeNameChanged);
-            nodeInspector.Add(nodeNameField);
+
+            // Create kebab menu button (three dots) for color selection
+            var colorMenuButton = new Button(() => ShowColorPicker()) { text = "⋯" };
+            colorMenuButton.style.width = 20;
+            colorMenuButton.style.height = 20;
+            colorMenuButton.style.fontSize = 14;
+            colorMenuButton.style.backgroundColor = Color.clear;
+            colorMenuButton.style.borderTopWidth = 1;
+            colorMenuButton.style.borderBottomWidth = 1;
+            colorMenuButton.style.borderLeftWidth = 1;
+            colorMenuButton.style.borderRightWidth = 1;
+            colorMenuButton.style.borderTopColor = new Color(0.4f, 0.4f, 0.4f, 1f);
+            colorMenuButton.style.borderBottomColor = new Color(0.4f, 0.4f, 0.4f, 1f);
+            colorMenuButton.style.borderLeftColor = new Color(0.4f, 0.4f, 0.4f, 1f);
+            colorMenuButton.style.borderRightColor = new Color(0.4f, 0.4f, 0.4f, 1f);
+            colorMenuButton.style.color = new Color(0.8f, 0.8f, 0.8f, 1f);
+
+            // Add hover effect
+            colorMenuButton.RegisterCallback<MouseEnterEvent>(evt => {
+                colorMenuButton.style.backgroundColor = new Color(0.6f, 0.6f, 0.6f, 0.3f);
+            });
+            colorMenuButton.RegisterCallback<MouseLeaveEvent>(evt => {
+                colorMenuButton.style.backgroundColor = Color.clear;
+            });
+
+            nodeNameContainer.Add(nodeNameField);
+            nodeNameContainer.Add(colorMenuButton);
+            nodeInspector.Add(nodeNameContainer);
 
             // Node connection management section with add button
             var nodeConnectionsContainer = new VisualElement();
@@ -1174,6 +1209,76 @@ namespace Junk.Yard.Editor
             EditorUtility.SetDirty(currentGraph);
 
             Debug.Log($"Created node-to-state connection from {selectedNode.Name} to {targetState.Name}");
+        }
+
+        private void ShowColorPicker()
+        {
+            if (selectedNode == null) return;
+
+            // Create a simple color picker using predefined colors
+            var colorChoices = new List<string>
+            {
+                "White",
+                "Red",
+                "Green",
+                "Blue",
+                "Yellow",
+                "Cyan",
+                "Magenta",
+                "Orange",
+                "Purple",
+                "Pink",
+                "Brown",
+                "Gray"
+            };
+
+            var colorMap = new Dictionary<string, Color>
+            {
+                {"White", new Color(0.55f, 0.55f, 0.55f)},
+                {"Red", new Color(0.54f, 0f, 0f)},
+                {"Green", new Color(0f, 0.53f, 0f)},
+                {"Blue", new Color(0f, 0.01f, 0.55f)},
+                {"Yellow", new Color(0.52f, 0.48f, 0.01f)},
+                {"Cyan", new Color(0f, 0.53f, 0.53f)},
+                {"Magenta", new Color(0.52f, 0f, 0.52f)},
+                {"Orange", new Color(1f, 0.5f, 0f, 0.52f)},
+                {"Purple", new Color(0.5f, 0f, 1f, 0.52f)},
+                {"Pink", new Color(1f, 0.75f, 0.8f, 0.52f)},
+                {"Brown", new Color(0.6f, 0.3f, 0.1f,0.52f)}
+            };
+
+            // Remove any existing color picker
+            var existingPicker = nodeInspector.Q<DropdownField>("color-picker");
+            if (existingPicker != null)
+            {
+                existingPicker.RemoveFromHierarchy();
+                return;
+            }
+
+            // Create color picker dropdown
+            var colorPicker = new DropdownField("Select Color:", colorChoices, -1);
+            colorPicker.name = "color-picker";
+            colorPicker.style.marginBottom = 10;
+            nodeInspector.Add(colorPicker);
+
+            colorPicker.RegisterValueChangedCallback(evt =>
+            {
+                var selectedColorName = evt.newValue;
+                if (!string.IsNullOrEmpty(selectedColorName) && colorMap.TryGetValue(selectedColorName, out var selectedColor))
+                {
+                    // Update the node color
+                    selectedNode.NodeColor = selectedColor;
+
+                    // Update visual representation
+                    var nodeView = graphView.GetNodeView(selectedNode.Id);
+                    nodeView.UpdateColors();
+                    EditorUtility.SetDirty(currentGraph);
+                    
+                }
+
+                // Remove the picker after selection
+                colorPicker.RemoveFromHierarchy();
+            });
         }
     }
 }

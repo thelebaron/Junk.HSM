@@ -13,6 +13,7 @@ namespace Junk.Yard.Editor
         public Vector2              Size;
         public List<StateData>      States;
         public List<ConnectionData> OutgoingConnections = new List<ConnectionData>();
+        public Color                NodeColor = Color.white; // Default color for nodes
         
         public NodeData()
         {
@@ -22,6 +23,7 @@ namespace Junk.Yard.Editor
             Size                = new Vector2(200, 100); // Smaller default size
             States              = new List<StateData>();
             OutgoingConnections = new List<ConnectionData>();
+            NodeColor           = Color.white; // Default color
         }
 
         public NodeData(string nodeName, Vector2 nodePosition)
@@ -32,6 +34,7 @@ namespace Junk.Yard.Editor
             Size                = new Vector2(200, 100); // Smaller default size
             States              = new List<StateData>();
             OutgoingConnections = new List<ConnectionData>();
+            NodeColor           = Color.white; // Default color
         }
 
         public void AddState(StateData state, GraphData graphData = null)
@@ -116,6 +119,25 @@ namespace Junk.Yard.Editor
             // Update position and size
             Position = new Vector2(newNodeX, newNodeY);
             Size     = new Vector2(newWidth, newHeight);
+        }
+
+        /// <summary>
+        /// Gets the darkened version of the node color for use on the node itself
+        /// </summary>
+        public Color GetDarkenedNodeColor()
+        {
+            // Darken the color by reducing HSV value by 30%
+            Color.RGBToHSV(NodeColor, out float h, out float s, out float v);
+            v *= 0.7f; // Darken by 30%
+            return Color.HSVToRGB(h, s, v);
+        }
+
+        /// <summary>
+        /// Gets the state color (original node color)
+        /// </summary>
+        public Color GetStateColor()
+        {
+            return NodeColor;
         }
     }
 }

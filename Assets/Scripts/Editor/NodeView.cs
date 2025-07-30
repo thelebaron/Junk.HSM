@@ -37,6 +37,7 @@ namespace Junk.Yard.Editor
             // Set initial position and size
             UpdatePosition();
             UpdateSize();
+            UpdateColors();
 
             // Register events
             RegisterCallback<MouseDownEvent>(OnMouseDown);
@@ -223,6 +224,35 @@ namespace Junk.Yard.Editor
                     if (stateView != null)
                     {
                         stateView.UpdateLabel();
+                    }
+                }
+            }
+        }
+
+        public void UpdateColors()
+        {
+            // Apply the darkened node color to the node background
+            var darkenedColor = nodeData.GetDarkenedNodeColor();
+            style.backgroundColor = new Color(darkenedColor.r, darkenedColor.g, darkenedColor.b, 0.35f);
+
+            // Use 50% grey for all node borders
+            var greyBorderColor = new Color(0.5f, 0.5f, 0.5f, 1.0f); // 50% grey
+            style.borderTopColor = greyBorderColor;
+            style.borderBottomColor = greyBorderColor;
+            style.borderLeftColor = greyBorderColor;
+            style.borderRightColor = greyBorderColor;
+
+            // Update child states colors
+            var graphData = graphView.GraphData;
+            if (graphData != null)
+            {
+                var nodeStates = graphData.GetStatesForNode(nodeData.Id);
+                foreach (var state in nodeStates)
+                {
+                    var stateView = graphView.GetStateView(state.Id);
+                    if (stateView != null)
+                    {
+                        stateView.UpdateColors();
                     }
                 }
             }

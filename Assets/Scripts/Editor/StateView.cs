@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Unity.Assertions;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -30,13 +31,38 @@ namespace Junk.Yard.Editor
 
             AddToClassList("state");
 
+            // Create the main container with vertical layout
+            style.flexDirection = FlexDirection.Column;
+            style.minWidth = 80; // Ensure minimum width
+            style.minHeight = 45; // Ensure minimum height for two sections
+
+            // Create label section (top)
+            var labelSection = new VisualElement();
+            labelSection.AddToClassList("state-label-section");
+            labelSection.style.flexGrow = 1; // Takes up available space
+            labelSection.style.flexShrink = 0;
+            labelSection.style.minHeight = 25; // Minimum height for label
+            labelSection.style.justifyContent = Justify.Center;
+            labelSection.style.alignItems = Align.Center;
+
             // Create state label
             stateLabel = new Label(GetDisplayText());
             stateLabel.AddToClassList("state-label");
-            Add(stateLabel);
+            labelSection.Add(stateLabel);
+
+            // Create empty section (bottom)
+            var emptySection = new VisualElement();
+            emptySection.AddToClassList("state-empty-section");
+            emptySection.style.height = 20; // Fixed height for empty section
+            emptySection.style.flexShrink = 0;
+            emptySection.style.backgroundColor = new Color(0f, 0f, 0f, 0.2f); // Slightly darker background
+
+            Add(labelSection);
+            Add(emptySection);
 
             // Set initial position
             UpdatePosition();
+            UpdateColors();
 
             // Register events
             RegisterCallback<MouseDownEvent>(OnMouseDown);
@@ -206,6 +232,32 @@ namespace Junk.Yard.Editor
 
             // If no parent node, just show the state name
             return stateData.Name;
+        }
+
+        public void UpdateColors()
+        {
+            Assert.IsFalse(string.IsNullOrEmpty(stateData.ParentNodeId), $"State {stateData.Name} has no parent node");
+            
+            var parentNode = graphView.GraphData.GetNodeById(stateData.ParentNodeId);
+            // Apply the original node color to the state background (label section)
+            var stateColor = parentNode.GetStateColor();
+
+            // Update the main state container background
+            style.backgroundColor = new Color(stateColor.r, stateColor.g, stateColor.b, 1.0f);
+
+            // Update border color to be slightly darker than background
+            var borderColor = Color.Lerp(stateColor, Color.black, 0.3f);
+            style.borderTopColor    = borderColor;
+            style.borderBottomColor = borderColor;
+            style.borderLeftColor   = borderColor;
+            style.borderRightColor  = borderColor;
+
+            // Update the empty section to be darker
+            var emptySection = this.Q<VisualElement>(className: "state-empty-section");
+            Assert.IsNotNull(emptySection, "Empty sub section for state not found.");
+            
+            var darkerColor = Color.Lerp(stateColor, Color.black, 0.4f);
+            emptySection.style.backgroundColor = new Color(darkerColor.r, darkerColor.g, darkerColor.b, 1.0f);
         }
     }
 }
