@@ -35,16 +35,14 @@ namespace Junk.Web
             NodeColor           = Color.white; // Default color
         }
 
-        public void AddState(StateData state, GraphData graphData = null)
+        public void AddState(StateData state)
         {
-            if (state == null) return;
             state.ParentNodeId = Id;
             States.Add(state);
         }
 
-        public void RemoveState(StateData state, GraphData graphData = null)
+        public void RemoveState(StateData state)
         {
-            if (state == null) return;
             States.Remove(state);
         }
 
@@ -55,18 +53,14 @@ namespace Junk.Web
 
         public void AddConnection(ConnectionData connection)
         {
-            if (connection != null && !OutgoingConnections.Contains(connection))
-            {
+            if (!OutgoingConnections.Contains(connection)) 
                 OutgoingConnections.Add(connection);
-            }
         }
 
         public void RemoveConnection(ConnectionData connection)
         {
-            if (connection != null)
-            {
+            if (OutgoingConnections.Contains(connection)) 
                 OutgoingConnections.Remove(connection);
-            }
         }
 
         public void RemoveConnectionById(string connectionId)

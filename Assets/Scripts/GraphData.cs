@@ -41,25 +41,21 @@ namespace Junk.Web
 
         public void AddState(StateData state)
         {
-            if (state == null) 
-                return;
             // Add to the parent node if it exists
             var parentNode = GetNodeById(state.ParentNodeId);
             if (parentNode != null && !parentNode.States.Contains(state))
             {
-                parentNode.AddState(state, this);
+                parentNode.AddState(state);
             }
         }
 
         public void RemoveState(StateData state)
         {
-            if (state == null) 
-                return;
             // Remove from parent node
             var parentNode = GetNodeById(state.ParentNodeId);
             if (parentNode != null)
             {
-                parentNode.RemoveState(state, this);
+                parentNode.RemoveState(state);
             }
 
             // Remove all connections related to this state from all nodes and their states

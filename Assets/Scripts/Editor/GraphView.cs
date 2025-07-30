@@ -138,8 +138,6 @@ namespace Junk.Web.Editor
 
         private void CreateNode(Vector2 position)
         {
-            if (GraphData == null) return;
-
             var nodeData = new NodeData("New Node", position - panOffset);
             GraphData.AddNode(nodeData);
             CreateNodeView(nodeData);
@@ -147,8 +145,6 @@ namespace Junk.Web.Editor
         
         private void CreateTypedNode(Vector2 position, string nodeTypeName)
         {
-            if (GraphData == null) return;
-
             var nodeData = new NodeData(nodeTypeName, position - panOffset);
             GraphData.AddNode(nodeData);
             CreateNodeView(nodeData);
@@ -156,8 +152,6 @@ namespace Junk.Web.Editor
 
         private void CreateTypedNodeAssignedTo(Vector2 position, string nodeTypeName, string parentNodeId)
         {
-            if (GraphData == null) return;
-
             var nodeData = new NodeData(nodeTypeName, position - panOffset);
             GraphData.AddNode(nodeData);
             CreateNodeView(nodeData);
@@ -181,8 +175,6 @@ namespace Junk.Web.Editor
 
         private void CreateStateAssignedTo(Vector2 position, string parentNodeId)
         {
-            if (GraphData == null) return;
-
             // Create state with the parent node ID assigned
             var stateData = new StateData("New State", position - panOffset, parentNodeId);
             GraphData.AddState(stateData);
@@ -190,14 +182,13 @@ namespace Junk.Web.Editor
 
             // Update the parent node's size to accommodate the new state
             var parentNode = GraphData.GetNodeById(parentNodeId);
-            if (parentNode != null)
+            if (parentNode == null)
             {
-                var parentNodeView = GetNodeView(parentNodeId);
-                if (parentNodeView != null)
-                {
-                    parentNodeView.UpdateSize();
-                }
+                Debug.LogError($"Parent node not found for ID: {parentNodeId}");
+                return;
             }
+            var parentNodeView = GetNodeView(parentNodeId);
+            parentNodeView?.UpdateSize();
         }
 
         public NodeView GetNodeView(string nodeId)
@@ -215,7 +206,7 @@ namespace Junk.Web.Editor
         {
             foreach (var nodeView in nodeViews.Values)
             {
-                if (nodeView != null && IsPositionInNodeView(position, nodeView))
+                if (IsPositionInNodeView(position, nodeView))
                     return nodeView;
             }
 
