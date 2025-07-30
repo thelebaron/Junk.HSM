@@ -1211,28 +1211,17 @@ namespace Junk.Yard.Editor
             Debug.Log($"Created node-to-state connection from {selectedNode.Name} to {targetState.Name}");
         }
 
+
+
         private void ShowColorPicker()
         {
             if (selectedNode == null) return;
 
-            // Create a simple color picker using predefined colors
-            var colorChoices = new List<string>
-            {
-                "White",
-                "Red",
-                "Green",
-                "Blue",
-                "Yellow",
-                "Cyan",
-                "Magenta",
-                "Orange",
-                "Purple",
-                "Pink",
-                "Brown",
-                "Gray"
-            };
+            // Create a contextual menu
+            var menu = new GenericMenu();
 
-            var colorMap = new Dictionary<string, Color>
+            // Add "Set Color" submenu with color options
+            var colorOptions = new Dictionary<string, Color>
             {
                 {"White", new Color(0.55f, 0.55f, 0.55f)},
                 {"Red", new Color(0.54f, 0f, 0f)},
@@ -1247,38 +1236,42 @@ namespace Junk.Yard.Editor
                 {"Brown", new Color(0.6f, 0.3f, 0.1f,0.52f)}
             };
 
-            // Remove any existing color picker
-            var existingPicker = nodeInspector.Q<DropdownField>("color-picker");
-            if (existingPicker != null)
+            // Add each color as a submenu item under "Set Color"
+            foreach (var colorOption in colorOptions)
             {
-                existingPicker.RemoveFromHierarchy();
-                return;
+                var colorName = colorOption.Key;
+                var color = colorOption.Value;
+
+                menu.AddItem(new GUIContent($"Set Color/{colorName}"), false, () => {
+                    ApplyColorToNode(color, colorName);
+                });
             }
 
-            // Create color picker dropdown
-            var colorPicker = new DropdownField("Select Color:", colorChoices, -1);
-            colorPicker.name = "color-picker";
-            colorPicker.style.marginBottom = 10;
-            nodeInspector.Add(colorPicker);
+            // Show the menu at the mouse position
+            menu.ShowAsContext();
+        }
 
-            colorPicker.RegisterValueChangedCallback(evt =>
+        private void ApplyColorToNode(Color selectedColor, string colorName)
+        {
+            if (selectedNode == null) return;
+
+            // Update the node color
+            selectedNode.NodeColor = selectedColor;
+
+            // Update visual representation
+            var nodeView = graphView.GetNodeView(selectedNode.Id);
+            if (nodeView != null)
             {
-                var selectedColorName = evt.newValue;
-                if (!string.IsNullOrEmpty(selectedColorName) && colorMap.TryGetValue(selectedColorName, out var selectedColor))
-                {
-                    // Update the node color
-                    selectedNode.NodeColor = selectedColor;
+                nodeView.UpdateColors();
+            }
 
-                    // Update visual representation
-                    var nodeView = graphView.GetNodeView(selectedNode.Id);
-                    nodeView.UpdateColors();
-                    EditorUtility.SetDirty(currentGraph);
-                    
-                }
+            // Mark graph as dirty
+            if (currentGraph != null)
+            {
+                EditorUtility.SetDirty(currentGraph);
+            }
 
-                // Remove the picker after selection
-                colorPicker.RemoveFromHierarchy();
-            });
+            Debug.Log($"Changed {selectedNode.Name} color to {colorName}");
         }
     }
 }
