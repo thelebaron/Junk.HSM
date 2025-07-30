@@ -5,7 +5,7 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Junk.Web.Editor
+namespace Junk.UI.Web.Editor
 {
     public partial class WebEditorWindow : EditorWindow
     {

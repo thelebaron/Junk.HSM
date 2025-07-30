@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Junk.Web
+namespace Junk.UI.Web
 {
     [Serializable]
     public class ConnectionData

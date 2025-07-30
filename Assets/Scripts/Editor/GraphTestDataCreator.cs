@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace Junk.Web.Editor
+namespace Junk.UI.Web.Editor
 {
     public static class GraphTestDataCreator
     {

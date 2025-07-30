@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Junk.Web.Editor
+namespace Junk.UI.Web.Editor
 {
     public static class NodeTypeScanner
     {

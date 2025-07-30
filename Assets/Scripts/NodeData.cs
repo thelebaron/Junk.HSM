@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace Junk.Web
+namespace Junk.UI.Web
 {
     [Serializable]
     public class NodeData

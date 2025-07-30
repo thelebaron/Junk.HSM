@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Junk.Web.Editor
+namespace Junk.UI.Web.Editor
 {
     public class NodeView : VisualElement
     {

@@ -4,7 +4,7 @@ using Unity.Assertions;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Junk.Web.Editor
+namespace Junk.UI.Web.Editor
 {
     public partial class GraphView : VisualElement
     {
@@ -27,8 +27,7 @@ namespace Junk.Web.Editor
 
         public event Action<StateData> OnStateSelected;
         public event Action<NodeData>  OnNodeSelected;
-
-
+        
         public GraphView()
         {
             this.AddToClassList("graph-view");

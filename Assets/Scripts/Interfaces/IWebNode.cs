@@ -1,6 +1,6 @@
 ﻿using Unity.Entities;
 
-namespace Junk.Web
+namespace Junk.UI.Web
 {
     public interface IWebNode
     {
