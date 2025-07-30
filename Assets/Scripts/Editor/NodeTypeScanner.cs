@@ -28,8 +28,8 @@ namespace Junk.Web.Editor
                     // Check if it's a struct that implements INode
                     if (type.IsValueType && 
                         !type.IsEnum && 
-                        typeof(INode).IsAssignableFrom(type) &&
-                        type != typeof(INode))
+                        typeof(IWebNode).IsAssignableFrom(type) &&
+                        type != typeof(IWebNode))
                     {
                         cachedNodeTypes.Add(type);
                     }

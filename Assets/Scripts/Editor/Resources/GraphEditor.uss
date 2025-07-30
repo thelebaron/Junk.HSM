@@ -11,11 +11,10 @@
     border-left-color: rgb(128, 128, 128);
     border-right-color: rgb(128, 128, 128);
     border-width: 1px;
-    border-radius: 0px;
+    border-radius: 0;
     min-width: 150px;
     min-height: 60px;
     padding: 0;
-    z-index: 1; /* Nodes appear behind states */
 }
 
 .node:hover {
@@ -30,9 +29,9 @@
 }
 
 .node-title-bar {
-    background-color: rgb(80, 80, 80, 0.0);
-    border-top-left-radius: 0px;
-    border-top-right-radius: 0px;
+    background-color: rgba(80, 80, 80, 0.0);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
     padding: 5px 10px;
     border-bottom-width: 1px;
     border-bottom-color: rgb(100, 100, 100);
@@ -61,7 +60,6 @@
     align-items: stretch; /* Make sections fill the width */
     min-height: 45px;
     min-width: 80px;
-    z-index: 10; /* Ensure states appear in front of nodes */
 }
 
 .state:hover {
@@ -126,7 +124,6 @@
 
 .connection {
     position: absolute;
-    pointer-events: none;
 }
 
 /* Toolbar styles */

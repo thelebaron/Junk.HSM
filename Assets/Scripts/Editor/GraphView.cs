@@ -8,11 +8,11 @@ namespace Junk.Web.Editor
 {
     public partial class GraphView : VisualElement
     {
-        private Dictionary<string, NodeView>  nodeViews       = new Dictionary<string, NodeView>();
-        private Dictionary<string, StateView> stateViews      = new Dictionary<string, StateView>();
-        private List<ConnectionView>          connectionViews = new List<ConnectionView>();
+        private Dictionary<string, NodeView>  nodeViews       = new();
+        private Dictionary<string, StateView> stateViews      = new();
+        private List<ConnectionView>          connectionViews = new();
         private Vector2                       panOffset       = Vector2.zero;
-        private bool                          isPanning       = false;
+        private bool                          isPanning;
         private Vector2                       lastMousePosition;
         private StateView                     selectedStateView;
         private NodeView                      selectedNodeView;
