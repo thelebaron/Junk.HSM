@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UIElements;
+using Junk.Web.Editor.Utilities;
 
 namespace Junk.Web.Editor
 {
@@ -95,60 +96,12 @@ namespace Junk.Web.Editor
                 cachedSourceEdge, cachedTargetEdge, curveStrength);
 
             // Draw arrow at target using actual curve direction
-            DrawArrowOnCurve(painter, sourcePos, targetPos,
+            ArrowUtility.DrawArrowOnCurve(painter, sourcePos, targetPos,
                 cachedSourceEdge, cachedTargetEdge, curveStrength);
         }
 
 
 
-        private void DrawArrowOnCurve(Painter2D                      painter,    Vector2                        start,      Vector2 end,
-                                      ConnectionPointCalculator.Edge sourceEdge, ConnectionPointCalculator.Edge targetEdge, float   curveStrength)
-        {
-            // Calculate control points for the curve using edge information
-            var controlPoints = BezierCurveUtility.CalculateControlPoints(start, end, sourceEdge, targetEdge, curveStrength);
-
-            // Get the direction at the end of the curve (t = 1.0)
-            var direction = BezierCurveUtility.GetTangentOnBezierCurve(start, controlPoints.Item1, controlPoints.Item2, end, 1.0f);
-
-            var arrowSize = 10f;
-
-            // Calculate arrow points using the curve direction
-            var arrowPoint1   = end - direction * arrowSize;
-            var perpendicular = new Vector2(-direction.y, direction.x);
-
-            var arrow1 = arrowPoint1 + perpendicular * arrowSize * 0.5f;
-            var arrow2 = arrowPoint1 - perpendicular * arrowSize * 0.5f;
-
-            // Draw arrow
-            painter.BeginPath();
-            painter.MoveTo(end);
-            painter.LineTo(arrow1);
-            painter.MoveTo(end);
-            painter.LineTo(arrow2);
-            painter.Stroke();
-        }
-
-        // Keep the old DrawArrow method for backward compatibility if needed
-        private void DrawArrow(Painter2D painter, Vector2 start, Vector2 end)
-        {
-            var direction = (end - start).normalized;
-            var arrowSize = 10f;
-
-            // Calculate arrow points
-            var arrowPoint1   = end - direction * arrowSize;
-            var perpendicular = new Vector2(-direction.y, direction.x);
-
-            var arrow1 = arrowPoint1 + perpendicular * arrowSize * 0.5f;
-            var arrow2 = arrowPoint1 - perpendicular * arrowSize * 0.5f;
-
-            // Draw arrow
-            painter.BeginPath();
-            painter.MoveTo(end);
-            painter.LineTo(arrow1);
-            painter.MoveTo(end);
-            painter.LineTo(arrow2);
-            painter.Stroke();
-        }
 
         private void CalculateConnectionPoints()
         {

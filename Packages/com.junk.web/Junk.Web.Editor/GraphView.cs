@@ -118,7 +118,7 @@ namespace Junk.Web.Editor
             nodeView.UpdateColors();
         }
 
-        private void CreateStateView(StateData stateData)
+        private void CreateStateView(StateData stateData, bool autoSelect = false)
         {
             var stateView = new StateView(stateData, this);
             stateViews[stateData.Id] = stateView;
@@ -126,6 +126,12 @@ namespace Junk.Web.Editor
 
             // Ensure colors are applied after creation
             stateView.UpdateColors();
+
+            // Auto-select the state if requested
+            if (autoSelect)
+            {
+                SelectState(stateView);
+            }
         }
 
         private void CreateConnectionView(ConnectionData connectionData)
@@ -179,7 +185,7 @@ namespace Junk.Web.Editor
             // Create state with the parent node ID assigned
             var stateData = new StateData("New State", position - panOffset, parentNodeId);
             GraphData.AddState(stateData);
-            CreateStateView(stateData);
+            CreateStateView(stateData, autoSelect: true);
 
             // Update the parent node's size to accommodate the new state
             var parentNode = GraphData.GetNodeById(parentNodeId);
@@ -450,7 +456,7 @@ namespace Junk.Web.Editor
             }
 
             GraphData.AddState(newState);
-            CreateStateView(newState);
+            CreateStateView(newState, autoSelect: true);
 
             // Update parent node size if assigned
             if (!string.IsNullOrEmpty(newState.ParentNodeId))
@@ -509,7 +515,7 @@ namespace Junk.Web.Editor
                 }
 
                 GraphData.AddState(newState);
-                CreateStateView(newState);
+                CreateStateView(newState, autoSelect: true);
             }
 
             RefreshConnections();
