@@ -575,6 +575,10 @@ namespace Junk.Web.Editor
             // Calculate the center of the view
             var viewCenter = new Vector2(layout.width * 0.5f, layout.height * 0.5f);
 
+            // Reset zoom to 100%
+            zoomLevel = 1.0f;
+            ApplyZoom();
+
             // Set pan offset to center the content
             panOffset = viewCenter - boundsCenter;
 
