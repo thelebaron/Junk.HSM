@@ -1,0 +1,26 @@
+﻿{
+  "name": "com.junk.web",
+  "version": "1.0.0",
+  "displayName": "Junk Web Graph Editor",
+  "description": "A graph-based state machine editor with visual node and state management capabilities for Unity projects.",
+  "unity": "2023.3",
+  "unityRelease": "0f1",
+  "documentationUrl": "",
+  "changelogUrl": "",
+  "licensesUrl": "",
+  "dependencies": {
+    "com.unity.entities": "1.3.14"
+  },
+  "keywords": [
+    "graph",
+    "editor",
+    "state machine",
+    "visual scripting",
+    "nodes"
+  ],
+  "author": {
+    "name": "Junk",
+    "email": "",
+    "url": ""
+  }
+}

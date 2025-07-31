@@ -108,7 +108,7 @@ namespace Junk.Web.Editor
             root.Add(mainContent);
 
             // Load styles
-            var styleSheet = Resources.Load<StyleSheet>("GraphEditor");
+            var styleSheet = AssetPaths.LoadGraphEditorStylesheet();
             if (styleSheet != null)
             {
                 root.styleSheets.Add(styleSheet);

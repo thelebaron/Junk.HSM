@@ -1,0 +1,20 @@
+{
+    "name": "Junk.Web.Editor",
+    "rootNamespace": "Junk.Web.Editor",
+    "references": [
+        "Junk.Web",
+        "Unity.Entities",
+        "Unity.Collections"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

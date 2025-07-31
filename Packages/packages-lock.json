@@ -1,5 +1,13 @@
 {
   "dependencies": {
+    "com.junk.web": {
+      "version": "file:com.junk.web",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.entities": "1.3.14"
+      }
+    },
     "com.unity.ai.navigation": {
       "version": "2.0.8",
       "depth": 0,

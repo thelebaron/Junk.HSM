@@ -56,6 +56,8 @@ namespace Junk.Web.Editor
             GraphData = graph;
             ClearGraphVisuals();
             
+            if (graph == null) 
+                return;
             // Fix any corrupted data before loading
             EnsureValidData();
 
@@ -78,9 +80,9 @@ namespace Junk.Web.Editor
             // Update colors for all nodes and states
             foreach (var nodeView in nodeViews.Values)
                 nodeView.UpdateColors();
-
+            
             // Defer size calculation and framing until after the layout pass
-            schedule.Execute(UpdateAllNodeSizesAndFrame).ExecuteLater(100);
+            schedule.Execute(UpdateAllNodeSizesAndFrame).ExecuteLater(1000);
         }
 
         private void ClearGraphVisuals()
