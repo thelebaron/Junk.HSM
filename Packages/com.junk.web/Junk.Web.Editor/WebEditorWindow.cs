@@ -87,6 +87,10 @@ namespace Junk.Web.Editor
             var frameAllButton = new Button(FrameAll) { text = "Frame All" };
             toolbar.Add(frameAllButton);
 
+            // Tree View button
+            var treeViewButton = new Button(ShowTreeView) { text = "Tree View" };
+            toolbar.Add(treeViewButton);
+
             root.Add(toolbar);
 
             // Create main content area with horizontal layout
@@ -410,6 +414,18 @@ namespace Junk.Web.Editor
         private void FrameAll()
         {
             graphView?.FrameAll();
+        }
+
+        private void ShowTreeView()
+        {
+            if (currentGraph != null)
+            {
+                GraphTreeViewWindow.ShowWindow(currentGraph);
+            }
+            else
+            {
+                Debug.LogWarning("No graph loaded to show in tree view.");
+            }
         }
 
         private void SaveCurrentGraphReference()
