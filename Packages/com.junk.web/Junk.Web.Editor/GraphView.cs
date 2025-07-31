@@ -12,6 +12,10 @@ namespace Junk.Web.Editor
         private Dictionary<string, StateView> stateViews      = new();
         private List<ConnectionView>          connectionViews = new();
         private Vector2                       panOffset       = Vector2.zero;
+        private float                         zoomLevel       = 1.0f;
+        private const float                   MinZoom         = 0.25f;
+        private const float                   MaxZoom         = 3.0f;
+        private const float                   ZoomSpeed       = 0.1f;
         private bool                          isPanning;
         private Vector2                       lastMousePosition;
         private StateView                     selectedStateView;
@@ -19,6 +23,7 @@ namespace Junk.Web.Editor
         private Vector2                       lastContextMenuPosition;
         private StateData                     copiedStateData;
         private NodeData                      copiedNodeData;
+        private VisualElement                 contentContainer;
         public  GraphData                     GraphData { get; private set; }
 
         // Connection creation state
@@ -31,6 +36,18 @@ namespace Junk.Web.Editor
         public GraphView()
         {
             this.AddToClassList("graph-view");
+
+            // Create content container that will hold all graph elements
+            contentContainer = new VisualElement();
+            contentContainer.AddToClassList("graph-content");
+            contentContainer.style.position = Position.Absolute;
+            contentContainer.style.left = 0;
+            contentContainer.style.top = 0;
+            contentContainer.style.width = Length.Percent(100);
+            contentContainer.style.height = Length.Percent(100);
+            contentContainer.style.overflow = Overflow.Visible;
+            contentContainer.pickingMode = PickingMode.Ignore; // Let events pass through to GraphView
+            Add(contentContainer);
 
             // Enable mouse events
             RegisterCallback<MouseDownEvent>(OnMouseDown);
@@ -81,14 +98,17 @@ namespace Junk.Web.Editor
             foreach (var nodeView in nodeViews.Values)
                 nodeView.UpdateColors();
             
+            // Apply initial zoom
+            ApplyZoom();
+            
             // Defer size calculation and framing until after the layout pass
             schedule.Execute(UpdateAllNodeSizesAndFrame).ExecuteLater(1000);
         }
 
         private void ClearGraphVisuals()
         {
-            // Clear visual elements from the graph view
-            Clear();
+            // Clear visual elements from the content container only
+            contentContainer?.Clear();
 
             // Clear dictionaries and lists
             nodeViews.Clear();
@@ -112,7 +132,7 @@ namespace Junk.Web.Editor
         {
             var nodeView = new NodeView(nodeData, this);
             nodeViews[nodeData.Id] = nodeView;
-            Add(nodeView);
+            contentContainer.Add(nodeView);
 
             // Ensure colors are applied after creation
             nodeView.UpdateColors();
@@ -122,7 +142,7 @@ namespace Junk.Web.Editor
         {
             var stateView = new StateView(stateData, this);
             stateViews[stateData.Id] = stateView;
-            Add(stateView);
+            contentContainer.Add(stateView);
 
             // Ensure colors are applied after creation
             stateView.UpdateColors();
@@ -138,7 +158,7 @@ namespace Junk.Web.Editor
         {
             var connectionView = new ConnectionView(connectionData, this);
             connectionViews.Add(connectionView);
-            Add(connectionView);
+            contentContainer.Add(connectionView);
         }
 
         
@@ -619,6 +639,30 @@ namespace Junk.Web.Editor
 
             // Update all connections
             UpdateConnections();
+        }
+
+        private void ApplyZoom()
+        {
+            // Apply zoom scaling to the content container only
+            // This maintains element relationships while keeping GraphView at full size
+            contentContainer.style.scale = new StyleScale(new Scale(new Vector3(zoomLevel, zoomLevel, 1f)));
+        }
+
+        private Vector2 ScreenToWorld(Vector2 screenPosition)
+        {
+            // Convert screen position to world position considering zoom and pan
+            return (screenPosition / zoomLevel) - panOffset;
+        }
+
+        private Vector2 WorldToScreen(Vector2 worldPosition)
+        {
+            // Convert world position to screen position considering zoom and pan
+            return (worldPosition + panOffset) * zoomLevel;
+        }
+
+        public float GetZoomLevel()
+        {
+            return zoomLevel;
         }
     }
 }

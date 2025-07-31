@@ -106,7 +106,7 @@ namespace Junk.Web.Editor
             if (isPanning)
             {
                 var delta = evt.localMousePosition - lastMousePosition;
-                panOffset         += delta;
+                panOffset += delta;
                 lastMousePosition =  evt.localMousePosition;
 
                 // Update all positions
@@ -128,7 +128,25 @@ namespace Junk.Web.Editor
 
         private void OnWheel(WheelEvent evt)
         {
-            // Zoom functionality could be added here
+            var mousePosition = evt.localMousePosition;
+            var zoomDelta = -evt.delta.y * ZoomSpeed;
+            var newZoomLevel = Mathf.Clamp(zoomLevel + zoomDelta, MinZoom, MaxZoom);
+            
+            if (Mathf.Approximately(newZoomLevel, zoomLevel))
+                return; // No change in zoom level
+            
+            // Calculate zoom to mouse position
+            var worldMousePosition = ScreenToWorld(mousePosition);
+            
+            zoomLevel = newZoomLevel;
+            ApplyZoom();
+            
+            // Adjust pan offset to keep mouse position centered
+            var newWorldMousePosition = ScreenToWorld(mousePosition);
+            var offset = worldMousePosition - newWorldMousePosition;
+            panOffset += offset;
+            
+            UpdateAllPositions();
             evt.StopPropagation();
         }
 
