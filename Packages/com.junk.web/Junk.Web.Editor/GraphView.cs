@@ -23,7 +23,7 @@ namespace Junk.Web.Editor
         private Vector2                       lastContextMenuPosition;
         private StateData                     copiedStateData;
         private NodeData                      copiedNodeData;
-        private VisualElement                 contentContainer;
+        private VisualElement                 graphContentContainer;
         public  GraphData                     GraphData { get; private set; }
 
         // Connection creation state
@@ -38,17 +38,17 @@ namespace Junk.Web.Editor
             this.AddToClassList("graph-view");
 
             // Create content container that will hold all graph elements
-            contentContainer = new VisualElement();
-            contentContainer.AddToClassList("graph-content");
-            contentContainer.style.position = Position.Absolute;
-            contentContainer.style.left = 0;
-            contentContainer.style.top = 0;
-            contentContainer.style.width = Length.Percent(100);
-            contentContainer.style.height = Length.Percent(100);
-            contentContainer.style.overflow = Overflow.Visible;
+            graphContentContainer = new VisualElement();
+            graphContentContainer.AddToClassList("graph-content");
+            graphContentContainer.style.position = Position.Absolute;
+            graphContentContainer.style.left = 0;
+            graphContentContainer.style.top = 0;
+            graphContentContainer.style.width = Length.Percent(100);
+            graphContentContainer.style.height = Length.Percent(100);
+            graphContentContainer.style.overflow = Overflow.Visible;
             // Keep default transform origin (center) but adjust our coordinate calculations
-            contentContainer.pickingMode = PickingMode.Ignore; // Let events pass through to GraphView
-            Add(contentContainer);
+            graphContentContainer.pickingMode = PickingMode.Ignore; // Let events pass through to GraphView
+            Add(graphContentContainer);
 
             // Enable mouse events
             RegisterCallback<MouseDownEvent>(OnMouseDown);
@@ -109,7 +109,7 @@ namespace Junk.Web.Editor
         private void ClearGraphVisuals()
         {
             // Clear visual elements from the content container only
-            contentContainer?.Clear();
+            graphContentContainer?.Clear();
 
             // Clear dictionaries and lists
             nodeViews.Clear();
@@ -133,7 +133,7 @@ namespace Junk.Web.Editor
         {
             var nodeView = new NodeView(nodeData, this);
             nodeViews[nodeData.Id] = nodeView;
-            contentContainer.Add(nodeView);
+            graphContentContainer.Add(nodeView);
 
             // Ensure colors are applied after creation
             nodeView.UpdateColors();
@@ -143,7 +143,7 @@ namespace Junk.Web.Editor
         {
             var stateView = new StateView(stateData, this);
             stateViews[stateData.Id] = stateView;
-            contentContainer.Add(stateView);
+            graphContentContainer.Add(stateView);
 
             // Ensure colors are applied after creation
             stateView.UpdateColors();
@@ -159,7 +159,7 @@ namespace Junk.Web.Editor
         {
             var connectionView = new ConnectionView(connectionData, this);
             connectionViews.Add(connectionView);
-            contentContainer.Add(connectionView);
+            graphContentContainer.Add(connectionView);
         }
 
         
@@ -650,7 +650,7 @@ namespace Junk.Web.Editor
         {
             // Apply zoom scaling to the content container only
             // This maintains element relationships while keeping GraphView at full size
-            contentContainer.style.scale = new StyleScale(new Scale(new Vector3(zoomLevel, zoomLevel, 1f)));
+            graphContentContainer.style.scale = new StyleScale(new Scale(new Vector3(zoomLevel, zoomLevel, 1f)));
         }
 
         private Vector2 ScreenToWorld(Vector2 screenPosition)
