@@ -134,16 +134,18 @@ namespace Junk.Web.Editor
             
             if (Mathf.Approximately(newZoomLevel, zoomLevel))
                 return; // No change in zoom level
+                
+            // Calculate the mouse position in world space before zoom
+            var worldMousePos = (mousePosition - panOffset) / zoomLevel;
             
-            // Calculate zoom to mouse position
-            var worldMousePosition = ScreenToWorld(mousePosition);
-            
+            // Update zoom level
+            var oldZoomLevel = zoomLevel;
             zoomLevel = newZoomLevel;
             ApplyZoom();
             
-            // Adjust pan offset to keep mouse position centered
-            var newWorldMousePosition = ScreenToWorld(mousePosition);
-            var offset = worldMousePosition - newWorldMousePosition;
+            // Calculate new pan offset to keep mouse position stable
+            var newScreenMousePos = worldMousePos * zoomLevel + panOffset;
+            var offset = mousePosition - newScreenMousePos;
             panOffset += offset;
             
             UpdateAllPositions();

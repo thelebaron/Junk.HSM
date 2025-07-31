@@ -651,13 +651,13 @@ namespace Junk.Web.Editor
         private Vector2 ScreenToWorld(Vector2 screenPosition)
         {
             // Convert screen position to world position considering zoom and pan
-            return (screenPosition / zoomLevel) - panOffset;
+            return (screenPosition - panOffset) / zoomLevel;
         }
 
         private Vector2 WorldToScreen(Vector2 worldPosition)
         {
             // Convert world position to screen position considering zoom and pan
-            return (worldPosition + panOffset) * zoomLevel;
+            return worldPosition * zoomLevel + panOffset;
         }
 
         public float GetZoomLevel()
