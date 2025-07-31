@@ -135,17 +135,24 @@ namespace Junk.Web.Editor
             if (Mathf.Approximately(newZoomLevel, zoomLevel))
                 return; // No change in zoom level
                 
-            // Calculate the mouse position in world space before zoom
-            var worldMousePos = (mousePosition - panOffset) / zoomLevel;
+            // Get the viewport center (where Unity scales from)
+            var viewportCenter = new Vector2(layout.width * 0.5f, layout.height * 0.5f);
+            
+            // Calculate mouse position relative to viewport center
+            var mouseFromCenter = mousePosition - viewportCenter;
+            
+            // Calculate the point in world space that should stay under the mouse
+            var worldPoint = (mouseFromCenter / zoomLevel) + (viewportCenter - panOffset) / zoomLevel;
             
             // Update zoom level
-            var oldZoomLevel = zoomLevel;
             zoomLevel = newZoomLevel;
             ApplyZoom();
             
-            // Calculate new pan offset to keep mouse position stable
-            var newScreenMousePos = worldMousePos * zoomLevel + panOffset;
-            var offset = mousePosition - newScreenMousePos;
+            // Calculate where that world point will be after zoom
+            var newScreenPoint = (worldPoint * zoomLevel) - (viewportCenter - panOffset);
+            
+            // Adjust pan offset to keep the world point under the mouse
+            var offset = mouseFromCenter - newScreenPoint;
             panOffset += offset;
             
             UpdateAllPositions();

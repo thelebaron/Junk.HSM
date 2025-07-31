@@ -46,6 +46,7 @@ namespace Junk.Web.Editor
             contentContainer.style.width = Length.Percent(100);
             contentContainer.style.height = Length.Percent(100);
             contentContainer.style.overflow = Overflow.Visible;
+            // Keep default transform origin (center) but adjust our coordinate calculations
             contentContainer.pickingMode = PickingMode.Ignore; // Let events pass through to GraphView
             Add(contentContainer);
 
